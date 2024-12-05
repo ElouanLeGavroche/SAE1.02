@@ -18,8 +18,8 @@
 #define DROITE 'd'
 
 //Taille du plateau
-#define LARGEUR 80
-#define HAUTEUR 40
+#define LARGEUR 81
+#define HAUTEUR 41
 
 /* Déclaration des constantes*/
 const char TETE = 'O', CORPS = 'X', STOP = 'a', MUR = '#', VIDE = ' ', POMME = '6';
@@ -31,17 +31,20 @@ const int DEPART_X = 40;
 const int DEPART_Y = 20;
 const int MIN_LARGEUR = 1;
 const int MIN_HAUTEUR = 1;
+#define NB_POMME 10
 
 /*Déclarations variables globales*/
 int tailleSerpent = TAILLE;
 
 /*Structures*/
 typedef char aireDeJeu[LARGEUR+1][HAUTEUR+1];
+typedef int t_pomme[NB_POMME];
 
 typedef struct{
-    int pommeX;
-    int pommeY;
+    t_pomme pommeX;
+    t_pomme pommeY;
     char apparence;
+    int nb;
 }stPomme;
 
 /* Variables globales*/
@@ -56,7 +59,7 @@ void progresser(int lesX[], int lesY[], bool *collision , bool *mangePomme, stPo
 void initPlateau(aireDeJeu plateau, int lesX[], int lesY[]);
 void afficherPlateau(aireDeJeu plateau);
 void teleportation (int lesX[], int lesY[]);
-void ajouterPomme(aireDeJeu plateau, int lesX[], int lesY[], int tailleSerpent, stPomme *pomme);
+void ajouterPomme(stPomme *pomme);
 void disableEcho();
 void enableEcho();
 
@@ -75,11 +78,14 @@ int main()
     bool collision; // Si serpent touche une bordure, lui-même ou un pavé
     bool mangePomme = true;//Si le serpent mange une pomme
 	
-    stPomme pomme = {10,20, POMME};
+    stPomme pomme = {
+        {75, 75, 78, 2, 8, 78, 74, 2, 72, 5},
+        {8, 39, 2, 2, 5, 39, 33, 38, 35, 2}, 
+        POMME,
+        0};
 
 	//Début programme
     
-    printf("%d %d", pomme.pommeX, pomme.pommeY);
     coordX = DEPART_X;
     coordY = DEPART_Y;
     collision = false;
@@ -92,13 +98,13 @@ int main()
 
     system("clear"); // Vide la console
     initPlateau(plateau, lesX, lesY); // Initialise le plateau de jeu
-    ajouterPomme(plateau, lesX, lesY, tailleSerpent, &pomme);// Ajoute une nouvelle pomme
     afficherPlateau(plateau); // Affiche le plateau
     dessinerSerpent(lesX, lesY); // Dessine le serpent
+    ajouterPomme(&pomme);// Ajoute une nouvelle pomme
     
     disableEcho();//Enlève les caractères frappés à l'écran pour qu'ils ne soient pas visibles
 
-    while (toucheSaisie != STOP && !collision) { // Tant que touche != 'a'  et qu'il n'y a pas de collision et que le serpent n'a pas mangé 10 pommes faire
+    while (toucheSaisie != STOP && !collision && pomme.nb != NB_POMME) { // Tant que touche != 'a'  et qu'il n'y a pas de collision et que le serpent n'a pas mangé 10 pommes faire
 		
         usleep(temps); // Temporisation
         if (kbhit() == 1) {//Si une touche a été frappée alors
@@ -109,7 +115,12 @@ int main()
 
         if (mangePomme)//Si le serpent a mangé une pomme
         {
-            ajouterPomme(plateau, lesX, lesY, tailleSerpent, &pomme);// Ajoute une nouvelle pomme
+            pomme.nb ++;
+
+            if(pomme.nb != NB_POMME){
+                ajouterPomme(&pomme);// Ajoute une nouvelle pomme
+            }
+            
             mangePomme = false;  // Réinitialisation de la variable mangePomme
         }
     }
@@ -214,7 +225,7 @@ void progresser(int lesX[], int lesY[], bool *collision, bool *mangePomme, stPom
     }
 
     // Vérifie si le serpent mange une pomme
-    if (lesX[0]==pomme.pommeX && lesY[0] == pomme.pommeY )
+    if (lesX[0]==pomme.pommeX[pomme.nb] && lesY[0] == pomme.pommeY[pomme.nb] )
     {
         *mangePomme = true;
     }
@@ -231,13 +242,13 @@ void progresser(int lesX[], int lesY[], bool *collision, bool *mangePomme, stPom
 
 
     int tampon = lesX[0];
-    if(lesX[0] != pomme.pommeX){
-        lesX[0] = (lesX[0] <= pomme.pommeX) ? lesX[0] + 1 : lesX[0] - 1;
+    if(lesX[0] != pomme.pommeX[pomme.nb]){
+        lesX[0] = (lesX[0] <= pomme.pommeX[pomme.nb]) ? lesX[0] + 1 : lesX[0] - 1;
     }
     else {
         if (tampon == lesX[0]){
-        if(lesY[0] != pomme.pommeY){
-        lesY[0] = (lesY[0] <= pomme.pommeY) ? lesY[0] + 1 : lesY[0] - 1;
+        if(lesY[0] != pomme.pommeY[pomme.nb]){
+        lesY[0] = (lesY[0] <= pomme.pommeY[pomme.nb]) ? lesY[0] + 1 : lesY[0] - 1;
         }
     }
     }
@@ -296,7 +307,7 @@ void initPlateau(aireDeJeu plateau, int lesX[], int lesY[])
     
 }
 
-void ajouterPomme(aireDeJeu plateau, int lesX[], int lesY[], int tailleSerpent, stPomme *pomme) 
+void ajouterPomme(stPomme *pomme) 
 {
     /**
 	* @brief procédure ajouterPomme, ajoute une pomme sur le plateau
@@ -305,38 +316,7 @@ void ajouterPomme(aireDeJeu plateau, int lesX[], int lesY[], int tailleSerpent, 
 	* @param lesY tableau de type entier, entrée : coordonnées en y du serpent
 	* @param tailleSerpent de type entier, entrée : taille actuelle du serpent
 	*/ 
-    srand(time(NULL));
-    int x, y; // Coordonnées de la pomme
-    bool estSurSerpent = true; // Si la pomme est sur un élément du serpent
-
-    // Vérifier si la position générée pour la pomme est sur le serpent ou un obstacle
-    while (estSurSerpent) {
-        // Position aléatoire pour la pomme
-        x = rand() % (LARGEUR - 2) + 1;  // Génère une position x entre 1 et LARGEUR-2
-        y = rand() % (HAUTEUR - 2) + 1;  // Génère une position y entre 1 et HAUTEUR-2
-
-        estSurSerpent = false; // Réinitialise estSurSerpent à false à chaque nouvelle tentative
-
-        // Vérifie si la position générée est sur un élément du serpent ou un obstacle
-        if (plateau[x][y] == MUR)
-        {
-            estSurSerpent = true;  // La position est un obstacle, réessaie
-        }
-        // Vérifie si la position est sur le serpent
-        for (int i = 0; i < tailleSerpent; i++)
-        {
-            if (lesX[i] == x && lesY[i] == y)
-            {
-                estSurSerpent = true;  // La pomme est sur le serpent, réessaie
-            }
-        }
-    }
-    plateau[x][y] = POMME;   // Ajoute la pomme à la position valide
-
-    pomme->pommeX = x;
-    pomme->pommeY = y;
-
-    afficher(pomme->pommeX,pomme->pommeY,POMME);//Affiche la pomme sur le plateau
+    afficher(pomme->pommeX[pomme->nb],pomme->pommeY[pomme->nb],pomme->apparence);//Affiche la pomme sur le plateau
 }
 
 
