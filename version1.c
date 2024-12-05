@@ -1,24 +1,3 @@
-/**
-* @file version4.c
-* @brief Programme snake version 4
-* @author Esmeralda MARTIN
-* @version version 4
-* @date 24/11/2024
-*
-* Programme snake, version 4, serpent de taille TAILLE qui peut se déplacer dans les quatre directions.
-* le programme s'arrete quand la touche 'a' est pressee
-* L’utilisateur peut changer la direction du serpent grâce aux touches zqsd
-* position initiale pas demandée à l’utilisateur au début de l’exécution
-* le serpent ne peut pas faire demi-tour sur lui-même
-* on n'autorise pas le serpent à se croiser
-* le serpent se déplacera à l’intérieur d’un plateau délimité
-* obstacles sur le plateau
-* le serpent doit manger des pommes (représentée par le caractère ‘6’)
-* les pommes apparaissent aléatoirement à l’intérieur du plateau sur une case non déjà occupée par un élément de pavé ou de serpent
-* Dès que le nombre de pommes mangées par le serpent atteint 10, le programme se termine et la partie est gagnée.
-* plateau "percé" d’une sortie au centre de chacun de ses côtés, quand le serpent sort du cadre, il réapparaît sur le côté opposé.
-*/
-
 /* Fichiers inclus */
 #include <stdlib.h>
 #include <stdio.h>
@@ -42,34 +21,16 @@
 #define LARGEUR 80
 #define HAUTEUR 40
 
-//Taille du serpent
-#define TAILLE_MAX 20
-
-
-
 /* Déclaration des constantes*/
-const char TETE = 'O', CORPS = 'X';
-const char STOP = 'a';
+const char TETE = 'O', CORPS = 'X', STOP = 'a', MUR = '#', VIDE = ' ', POMME = '6';
 const int TEMPS = 200000;
 const int TAILLE = 10;
 const int LIM_MAX = 40;
 const int LIM_MIN = 1;
 const int DEPART_X = 40;
 const int DEPART_Y = 20;
-const char MUR = '#';
-const char VIDE = ' ';
-const int NB_BLOC = 4;
-const int TAILLE_BLOC = 5;
-const int MOITIE_LARGEUR = 40;
-const int MOITIE_HAUTEUR = 40;
 const int MIN_LARGEUR = 1;
 const int MIN_HAUTEUR = 1;
-const char POMME = '6';
-const float AUGMENTE_TEMPS = 0.9;
-const int TROU_DROITE = 79;
-const int TROU_GAUCHE = 1;
-const int TROU_HAUT = 1;
-const int TROU_BAS = 39;
 
 /*Déclarations variables globales*/
 int tailleSerpent = TAILLE;
@@ -86,35 +47,30 @@ void afficher(int x, int y, char c);
 void effacer(int x, int y);
 void dessinerSerpent(int lesX[], int lesY[]);
 void progresser(int lesX[], int lesY[], char direction, bool *collision , bool *mangePomme);
-void disableEcho();
-void enableEcho();
 void initPlateau(aireDeJeu plateau, int lesX[], int lesY[]);
 void afficherPlateau(aireDeJeu plateau);
-void initPaves(aireDeJeu plateau, int lesX[], int lesY[]);
 void teleportation (int lesX[], int lesY[]);
 void ajouterPomme(aireDeJeu plateau, int lesX[], int lesY[], int tailleSerpent);
+void disableEcho();
+void enableEcho();
 
 /* Déclaration des fonctions */
-int kbhit();
 bool estObstacle(int x, int y);
-
-
+int kbhit();
 
 int main()
 {
     int tailleSerpent = TAILLE;  // Taille initiale du serpent
-    int lesX[TAILLE_MAX]; // Tab coordonnées en x
-    int lesY[TAILLE_MAX]; // Tab coordonnées en y
+    int temps=TEMPS; //Vitesse de délpacement du serpent
+    int lesX[TAILLE]; // Tab coordonnées en x
+    int lesY[TAILLE]; // Tab coordonnées en y
+    int coordX, coordY; // Valeurs des tableaux de coordonnées
     char touchePrecedente; // Touche frappée par l'utilisateur
     char toucheSaisie;	
-    int coordX, coordY; // Valeurs des tableaux de coordonnées
     bool collision; // Si serpent touche une bordure, lui-même ou un pavé
     bool mangePomme;//Si le serpent mange une pomme
-    int temps=TEMPS;//Vitesse de délpacement du serpent
 	
 	//Début programme
-	
-    srand(time(NULL));
 
     coordX = DEPART_X;
     coordY = DEPART_Y;
@@ -135,40 +91,32 @@ int main()
     
     disableEcho();//Enlève les caractères frappés à l'écran pour qu'ils ne soient pas visibles
 
-    while (toucheSaisie != STOP && !collision && tailleSerpent!=TAILLE_MAX) { // Tant que touche != 'a'  et qu'il n'y a pas de collision et que le serpent n'a pas mangé 10 pommes faire
+    while (toucheSaisie != STOP && !collision) { // Tant que touche != 'a'  et qu'il n'y a pas de collision et que le serpent n'a pas mangé 10 pommes faire
 		
         usleep(temps); // Temporisation
-        int frappe = kbhit(); // Regarde si touche frappée
-        if (frappe == 1) {//Si une touche a été frappée alors
+        if (kbhit() == 1) {//Si une touche a été frappée alors
             scanf("%c", &toucheSaisie); // Lire cette touche
-        }//Fin si
+        }
 		
-        if (((toucheSaisie == DROITE) && (touchePrecedente != GAUCHE))||//Si le serpent veut aller vers la droite et qu'il ne va pas déjà a gauche
-			((toucheSaisie == GAUCHE) && (touchePrecedente != DROITE))||//Si le serpent veut aller vers la gauche et qu'il ne va pas déjà a droite
-			((toucheSaisie == HAUT) && (touchePrecedente != BAS))||//Si le serpent veut aller vers le haut et qu'il ne va pas déjà en bas
-			((toucheSaisie == BAS) && (touchePrecedente != HAUT)))//Si le serpent veut aller vers le bas et qu'il ne va pas déjà en haut
+        if ((toucheSaisie == DROITE) ||//Si le serpent veut aller vers la droite 
+			(toucheSaisie == GAUCHE)||//Si le serpent veut aller vers la gauche 
+			(toucheSaisie == HAUT) ||//Si le serpent veut aller vers le haut
+			(toucheSaisie == BAS))//Si le serpent veut aller vers le bas
         {
             touchePrecedente = toucheSaisie; // La touche prend la valeur rentrée par l'utilisateur
-        }//Fin si
-
+        }
         progresser(lesX, lesY, touchePrecedente, &collision, &mangePomme);// Faire progresser le serpent d'une position vers la direction souhaitée (=calculer sa nouvelle position), vérifie si collision, vérifie si mange pomme
 
         if (mangePomme)//Si le serpent a mangé une pomme
         {
             ajouterPomme(plateau, lesX, lesY, tailleSerpent);// Ajoute une nouvelle pomme
-            tailleSerpent++; // Augmente la taille du serpent
-			temps=temps*AUGMENTE_TEMPS;//Augmente la vitesse du serpent
-        }//Fin_si
-
+        }
         mangePomme = false;  // Réinitialisation de la variable mangePomme
-
-    }//Fin tant_que
-
+    }
     enableEcho();//Rend à nouveau visibles les caractères frappés à l'écran
     printf("\n");
 
     return EXIT_SUCCESS;
-    //Fin
 }
 
 void gotoXY(int x, int y)
@@ -208,7 +156,6 @@ void effacer(int x, int y)
     printf(" ");
 }
 
-
 void dessinerSerpent(int lesX[], int lesY[])
 {
     
@@ -218,10 +165,9 @@ void dessinerSerpent(int lesX[], int lesY[])
 	* @param lesX tableau de type entier, entrée : coordonées en x
 	* @param lesY tableau de type entier, entrée : coordonées en y
 	*/
-    for (int i = 0; i < TAILLE_MAX; i++)
+    for (int i = 0; i < TAILLE; i++)
     {
 		if ((lesX[i] >= LIM_MIN) && (lesY[i] >= LIM_MIN))//Affiche le serpent seulement s'il est dans la console
-											//S'il sort de la console, on ne l'affiche pas
 		{
 			if (i==0)
 			{
@@ -230,9 +176,9 @@ void dessinerSerpent(int lesX[], int lesY[])
 			else
 			{
 				afficher(lesX[i],lesY[i],CORPS);//Affiche le corps du serpent
-			}//Fin si
-		}//Fin si
-    }//Fin boucle for
+			}
+		}
+    }
     
 }
 
@@ -246,7 +192,6 @@ bool estObstacle(int x, int y)
 	*/
     return plateau[x][y] == MUR;  // Renvoie true si il y a un '#' à la case x,y du plateau
 }
-
 
 void progresser(int lesX[], int lesY[], char direction, bool *collision, bool *mangePomme)
 {	
@@ -267,19 +212,11 @@ void progresser(int lesX[], int lesY[], char direction, bool *collision, bool *m
         effacer(lesX[i], lesY[i]);
     }
 
-    // Déplacer le serpent (téléportation pour la tête et déplacement des autres éléments)
-    teleportation(lesX, lesY);
-
     // Vérifie si le serpent mange une pomme
     if (plateau[lesX[0]][lesY[0]] == POMME)
     {
         *mangePomme = true;
         plateau[lesX[0]][lesY[0]] = VIDE;  // Efface la pomme du plateau
-
-        // Ajouter un nouvel élément au serpent à la fin
-        lesX[tailleSerpent] = lesX[tailleSerpent - 1];  // La nouvelle case X prend la position de l'élément précédent
-        lesY[tailleSerpent] = lesY[tailleSerpent - 1];  // La nouvelle case Y prend la position de l'élément précédent
-        tailleSerpent++;  // Augmente la taille du serpent
     }
     else
     {
@@ -324,49 +261,87 @@ void progresser(int lesX[], int lesY[], char direction, bool *collision, bool *m
         *collision = false; // Pas de collision
     }
 
-    // Vérifie si la tête se retrouve sur son propre corps
-    for (int i = 1; i < tailleSerpent; i++)
-    {
-        if (lesX[0] == lesX[i] && lesY[0] == lesY[i])//Si la tête arrive sur un des éléments du serpent
-        {
-            *collision = true; // Collision
-        }
-    }
-
     // Redessine le serpent à sa nouvelle position
     dessinerSerpent(lesX, lesY);
 }
 
 
-
-
-
-
-void teleportation (int lesX[], int lesY[])
+void afficherPlateau(aireDeJeu plateau)
 {
 	/**
-	* @brief procédure teleportation, calcule et affiche la prochaine position du serpent s'il passe par un des trous du plateau 
-	* @param lesX tableau de type entier, entrée : coordonnées en x
-	* @param lesY tableau de type entier, entrée : coordonnées en y
+	* @brief procédure afficherPlateau, affiche tout le plateau et ses bords
+	* @param plateau tableau de type aireDeJeu, entrée : éléments à placer sur la console
 	*/
-	
-	if (lesX[0]==TROU_DROITE)//Passe par le trou à droite
-	{
-		lesX[0]=TROU_GAUCHE;//Met la tête du serpent dans le trou a gauche
-	}
-	else if (lesX[0]==TROU_GAUCHE)//Passe par le trou à gauche
-	{
-		lesX[0]=TROU_DROITE;//Met la tête du serpent dans le trou a droite
-	}
-	else if (lesY[0]==TROU_HAUT)//Passe par le trou en haut
-	{
-		lesY[0]=TROU_BAS;//Met la tête du serpent dans le trou en bas
-	}
-	else if (lesY[0]==TROU_BAS)//Passe par le trou en bas
-	{
-		lesY[0]=TROU_HAUT;//Met la tête du serpent dans le trou en haut
-	}
-	
+    for (int i = 0; i < LARGEUR; i++)
+    {
+        for (int j = 0; j < HAUTEUR; j++)
+        {
+            afficher(i, j, plateau[i][j]);  // Afficher chaque case du plateau
+        }
+        printf("\n");//Retour à la ligne après avoir fini une ligne
+    }
+}
+
+void initPlateau(aireDeJeu plateau, int lesX[], int lesY[])
+{
+	/**
+	* @brief procédure initPlateau, initialise tout le plateau et ses bords
+	* @param plateau tableau de type aireDeJeu, entrée : éléments à placer sur la console
+	* @param lesX tableau de type entier, entrée : coordonées en x
+	* @param lesY tableau de type entier, entrée : coordonées en y
+	*/ 
+    // Initialise les bords du plateau
+    for (int i = 0; i < LARGEUR; i++)
+    {
+        for (int j = 0; j < HAUTEUR; j++)
+        {
+            if (i == MIN_LARGEUR || i == LARGEUR - 1 || j == MIN_HAUTEUR || j == HAUTEUR - 1) {
+                plateau[i][j] = MUR;  //Remplir les bords du plateau avec des '#'
+            } else {
+                plateau[i][j] = VIDE;  //Remplir l'intérieur du plateau avec des ' '
+            }
+        }
+    }
+    
+}
+
+void ajouterPomme(aireDeJeu plateau, int lesX[], int lesY[], int tailleSerpent) 
+{
+    /**
+	* @brief procédure ajouterPomme, ajoute une pomme sur le plateau
+	* @param plateau tableau de type aireDeJeu, entrée : éléments à placer sur la console
+	* @param lesX tableau de type entier, entrée : coordonnées en x du serpent
+	* @param lesY tableau de type entier, entrée : coordonnées en y du serpent
+	* @param tailleSerpent de type entier, entrée : taille actuelle du serpent
+	*/ 
+    srand(time(NULL));
+    int x, y; // Coordonnées de la pomme
+    bool estSurSerpent = true; // Si la pomme est sur un élément du serpent
+
+    // Vérifier si la position générée pour la pomme est sur le serpent ou un obstacle
+    while (estSurSerpent) {
+        // Position aléatoire pour la pomme
+        x = rand() % (LARGEUR - 2) + 1;  // Génère une position x entre 1 et LARGEUR-2
+        y = rand() % (HAUTEUR - 2) + 1;  // Génère une position y entre 1 et HAUTEUR-2
+
+        estSurSerpent = false; // Réinitialise estSurSerpent à false à chaque nouvelle tentative
+
+        // Vérifie si la position générée est sur un élément du serpent ou un obstacle
+        if (plateau[x][y] == MUR)
+        {
+            estSurSerpent = true;  // La position est un obstacle, réessaie
+        }
+        // Vérifie si la position est sur le serpent
+        for (int i = 0; i < tailleSerpent; i++)
+        {
+            if (lesX[i] == x && lesY[i] == y)
+            {
+                estSurSerpent = true;  // La pomme est sur le serpent, réessaie
+            }
+        }
+    }
+    plateau[x][y] = POMME;   // Ajoute la pomme à la position valide
+    afficher(x,y,POMME);//Affiche la pomme sur le plateau
 }
 
 
@@ -418,104 +393,6 @@ void enableEcho()
     }
 }
 
-void afficherPlateau(aireDeJeu plateau)
-{
-	/**
-	* @brief procédure afficherPlateau, affiche tout le plateau et ses bords
-	* @param plateau tableau de type aireDeJeu, entrée : éléments à placer sur la console
-	*/
-    for (int i = 0; i < LARGEUR; i++)
-    {
-        for (int j = 0; j < HAUTEUR; j++)
-        {
-            afficher(i, j, plateau[i][j]);  // Afficher chaque case du plateau
-        }
-        printf("\n");//Retour à la ligne après avoir fini une ligne
-    }
-}
-
-void initPlateau(aireDeJeu plateau, int lesX[], int lesY[])
-{
-	/**
-	* @brief procédure initPlateau, initialise tout le plateau et ses bords
-	* @param plateau tableau de type aireDeJeu, entrée : éléments à placer sur la console
-	* @param lesX tableau de type entier, entrée : coordonées en x
-	* @param lesY tableau de type entier, entrée : coordonées en y
-	*/ 
-    // Initialise les bords du plateau
-    for (int i = 0; i < LARGEUR; i++)
-    {
-        for (int j = 0; j < HAUTEUR; j++)
-        {
-            if (i == MIN_LARGEUR || i == LARGEUR - 1 || j == MIN_HAUTEUR || j == HAUTEUR - 1) {
-                plateau[i][j] = MUR;  //Remplir les bords du plateau avec des '#'
-            } else {
-                plateau[i][j] = VIDE;  //Remplir l'intérieur du plateau avec des ' '
-            }
-        }
-    }
-    
-    for (int i = 0; i < NB_BLOC; i++) { //Ajouter NB_BLOC obstacles
-        initPaves(plateau,lesX,lesY);  // Ajouter des obstacles à des endroits aléatoires
-    }
-    
-    //Trous sur les cotés
-    plateau[TROU_GAUCHE][HAUTEUR/2]=VIDE;// sortie a gauche
-    plateau[LARGEUR/2][TROU_HAUT]=VIDE;// sortie en haut
-    plateau[LARGEUR/2][TROU_BAS]=VIDE;// sortie en bas
-    plateau[TROU_DROITE][HAUTEUR/2]=VIDE;// sortie a droite
-}
-
-void initPaves(aireDeJeu plateau, int lesX[], int lesY[]) 
-{
-    /**
-    * @brief procédure initPaves, initialise les obstacles du plateau pour ensuite les placer
-    * @param plateau tableau de type aireDeJeu, entrée : éléments à placer sur la console
-    * @param lesX tableau de type entier, entrée : coordonées en x
-    * @param lesY tableau de type entier, entrée : coordonées en y
-    */ 
-    bool estSurSerpent = true; // Si l'obstacle est sur un élément du serpent
-    int x, y; // Coordonnées de l'obstacle
-
-    // Vérifier si la position générée pour le pavé est sur le serpent ou trop proche de la tête du serpent
-    while (estSurSerpent) {
-        // Position aléatoire pour le pavé 
-        x = rand() % (LARGEUR - TAILLE_BLOC - 6) + 3;  // Décalage de 3 cases pour les bords(marge de sécurité)
-        y = rand() % (HAUTEUR - TAILLE_BLOC - 6) + 3; // Décalage de 3 cases pour les bords(marge de sécurité)
-
-        estSurSerpent = false;// Réinitialise estSurSerpent à false à chaque nouvelle tentative
-
-        for (int i = 0; i < TAILLE && !estSurSerpent; i++)// Vérifie si l'obstacle est dans une zone de 3 cases autour de la tête du serpent
-        {
-            for (int j = x; j < x + TAILLE_BLOC && !estSurSerpent; j++)
-            {
-                for (int k = y; k < y + TAILLE_BLOC && !estSurSerpent; k++)
-                {
-                    //La fonction abs() permet de comparer la distance en coordonnées X et Y entre la tête du serpent et la position du pavé
-                    if (abs(lesX[0] - j) <= 3 && abs(lesY[0] - k) <= 3)// Vérifie de la zone autour de la tête du serpent
-                    {
-                        estSurSerpent = true;  // Pavé trop proche de la tête
-                    }//Fin si
-                    
-                    if (!estSurSerpent && lesX[i] == j && lesY[i] == k)// Vérifie si le pavé ne touche pas une partie du serpent
-                    {
-                        estSurSerpent = true;  // L'obstacle touche le serpent
-                    }//Fin si
-                }//Fin boucle For
-            }//Fin boucle For
-        }//Fin boucle For
-    }//Fin boucle tant_que
-
-   
-    for (int i = x; i < x + TAILLE_BLOC; i++)
-    {
-        for (int j = y; j < y + TAILLE_BLOC; j++)
-        {
-            plateau[i][j] = MUR;   // Ajout du pavé dans le plateau si l'emplacement est pas sur serpent ou à côté
-        }//Fin boucle For
-    }//Fin boucle For
-}
-
 int kbhit()
 {	
 	/**
@@ -552,49 +429,3 @@ int kbhit()
 	} 
 	return unCaractere;
 }
-
-void ajouterPomme(aireDeJeu plateau, int lesX[], int lesY[], int tailleSerpent) 
-{
-    /**
-	* @brief procédure ajouterPomme, ajoute une pomme sur le plateau
-	* @param plateau tableau de type aireDeJeu, entrée : éléments à placer sur la console
-	* @param lesX tableau de type entier, entrée : coordonnées en x du serpent
-	* @param lesY tableau de type entier, entrée : coordonnées en y du serpent
-	* @param tailleSerpent de type entier, entrée : taille actuelle du serpent
-	*/
-    
-    srand(time(NULL));
-    bool estSurSerpent = true; // Si la pomme est sur un élément du serpent
-    int x, y; // Coordonnées de la pomme
-
-    // Vérifier si la position générée pour la pomme est sur le serpent ou un obstacle
-    while (estSurSerpent) {
-        // Position aléatoire pour la pomme
-        x = rand() % (LARGEUR - 2) + 1;  // Génère une position x entre 1 et LARGEUR-2
-        y = rand() % (HAUTEUR - 2) + 1;  // Génère une position y entre 1 et HAUTEUR-2
-
-        estSurSerpent = false; // Réinitialise estSurSerpent à false à chaque nouvelle tentative
-
-        // Vérifie si la position générée est sur un élément du serpent ou un obstacle
-        if (plateau[x][y] == MUR)
-        {
-            estSurSerpent = true;  // La position est un obstacle, réessaie
-        }
-
-        // Vérifie si la position est sur le serpent
-        for (int i = 0; i < tailleSerpent; i++)
-        {
-            if (lesX[i] == x && lesY[i] == y)
-            {
-                estSurSerpent = true;  // La pomme est sur le serpent, réessaie
-            }
-        }
-    }
-
-    plateau[x][y] = POMME;   // Ajoute la pomme à la position valide
-    afficher(x,y,POMME);//Affiche la pomme sur le plateau
-}
-
-
-
-
