@@ -23,7 +23,7 @@
 
 /* Déclaration des constantes*/
 const char TETE = 'O', CORPS = 'X', STOP = 'a', MUR = '#', VIDE = ' ', POMME = '6';
-const int TEMPS = 200000;
+const int TEMPS = 50000;//200000;
 const int TAILLE = 10;
 const int LIM_MAX = 40;
 const int LIM_MIN = 1;
@@ -78,8 +78,7 @@ int main()
     stPomme pomme = {10,20, POMME};
 
 	//Début programme
-    ajouterPomme(plateau, lesX, lesY, tailleSerpent, &pomme);// Ajoute une nouvelle pomme
-
+    
     printf("%d %d", pomme.pommeX, pomme.pommeY);
     coordX = DEPART_X;
     coordY = DEPART_Y;
@@ -91,8 +90,9 @@ int main()
         lesY[i] = coordY;
     }
 
-    //system("clear"); // Vide la console
+    system("clear"); // Vide la console
     initPlateau(plateau, lesX, lesY); // Initialise le plateau de jeu
+    ajouterPomme(plateau, lesX, lesY, tailleSerpent, &pomme);// Ajoute une nouvelle pomme
     afficherPlateau(plateau); // Affiche le plateau
     dessinerSerpent(lesX, lesY); // Dessine le serpent
     
@@ -109,6 +109,7 @@ int main()
 
         if (mangePomme)//Si le serpent a mangé une pomme
         {
+            ajouterPomme(plateau, lesX, lesY, tailleSerpent, &pomme);// Ajoute une nouvelle pomme
             mangePomme = false;  // Réinitialisation de la variable mangePomme
         }
     }
@@ -213,10 +214,9 @@ void progresser(int lesX[], int lesY[], bool *collision, bool *mangePomme, stPom
     }
 
     // Vérifie si le serpent mange une pomme
-    if (plateau[lesX[0]][lesY[0]] == POMME)
+    if (lesX[0]==pomme.pommeX && lesY[0] == pomme.pommeY )
     {
         *mangePomme = true;
-        plateau[lesX[0]][lesY[0]] = VIDE;  // Efface la pomme du plateau
     }
     else
     {
