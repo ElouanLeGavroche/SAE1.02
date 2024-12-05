@@ -56,7 +56,7 @@ void progresser(int lesX[], int lesY[], bool *collision , bool *mangePomme, stPo
 void initPlateau(aireDeJeu plateau, int lesX[], int lesY[]);
 void afficherPlateau(aireDeJeu plateau);
 void teleportation (int lesX[], int lesY[]);
-void ajouterPomme(aireDeJeu plateau, int lesX[], int lesY[], int tailleSerpent, stPomme pomme);
+void ajouterPomme(aireDeJeu plateau, int lesX[], int lesY[], int tailleSerpent, stPomme *pomme);
 void disableEcho();
 void enableEcho();
 
@@ -78,8 +78,9 @@ int main()
     stPomme pomme = {10,20, POMME};
 
 	//Début programme
-    ajouterPomme(plateau, lesX, lesY, tailleSerpent, pomme);// Ajoute une nouvelle pomme
+    ajouterPomme(plateau, lesX, lesY, tailleSerpent, &pomme);// Ajoute une nouvelle pomme
 
+    printf("%d %d", pomme.pommeX, pomme.pommeY);
     coordX = DEPART_X;
     coordY = DEPART_Y;
     collision = false;
@@ -230,9 +231,17 @@ void progresser(int lesX[], int lesY[], bool *collision, bool *mangePomme, stPom
 
 
     int tampon = lesX[0];
-    lesX[0] = (lesX[0] < pomme.pommeX) ? lesX[0] + 1 : lesX[0] - 1;
-    if (tampon != lesX[0])
-        lesY[0] = (lesY[0] < pomme.pommeY) ? lesY[0] + 1 : lesY[0] - 1;
+    if(lesX[0] != pomme.pommeX){
+        lesX[0] = (lesX[0] <= pomme.pommeX) ? lesX[0] + 1 : lesX[0] - 1;
+    }
+    else {
+        if (tampon == lesX[0]){
+        if(lesY[0] != pomme.pommeY){
+        lesY[0] = (lesY[0] <= pomme.pommeY) ? lesY[0] + 1 : lesY[0] - 1;
+        }
+    }
+    }
+    
 
     // Vérifie si collision : si la prochaine position de la tête est un obstacle
     if (estObstacle(lesX[0], lesY[0])) {
@@ -324,10 +333,10 @@ void ajouterPomme(aireDeJeu plateau, int lesX[], int lesY[], int tailleSerpent, 
     }
     plateau[x][y] = POMME;   // Ajoute la pomme à la position valide
 
-    *pomme.pommeX = x;
-    *pomme.pommeY = y;
+    pomme->pommeX = x;
+    pomme->pommeY = y;
 
-    afficher(*pomme->pommeX,pomme,POMME);//Affiche la pomme sur le plateau
+    afficher(pomme->pommeX,pomme->pommeY,POMME);//Affiche la pomme sur le plateau
 }
 
 
