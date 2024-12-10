@@ -38,7 +38,7 @@ int taille_joueur = 10;
 #define CARACTERE_EFFACER ' ' // Pour effacer un élément
 #define MUR '#'
 #define POMME '6'
-#define VITESSE 200000 // micro_sec
+#define VITESSE 200 // micro_sec
 
 #define FERMER_JEU 'a' // Condition d'arrêt
 
@@ -65,12 +65,12 @@ void init_plateau(type_tableau_2d tableau);
 void dessiner_serpent(corp_longeur les_x, corp_longeur les_y);
 void effacer_serpent(corp_longeur les_x, corp_longeur les_y);
 void effacer(int x, int y);
-void progresser(corp_longeur les_x, corp_longeur les_y, bool *collision_joueur, int pomme_x, int pomme_y);
+void progresser(corp_longeur les_x, corp_longeur les_y, bool *collision_joueur, int *before_x_apple, int *before_y_apple);
 void creation_du_serpent(int x, int y, corp_longeur les_x, corp_longeur les_y);
 void enable_echo();
 void disable_echo();
 void dessiner_plateau(type_tableau_2d plateau);
-void precal_path(int pomme_x, int pomme_y, int tete_x, int tete_y, int *before_x_apple, int *before_y_apple)
+void precal_path(int pomme_x, int pomme_y, int tete_x, int tete_y, int *before_x_apple, int *before_y_apple);
 
 char lire_entrer();
 
@@ -107,9 +107,9 @@ int main()
 	int before_apple_x = 0;
 	int before_apple_y = 0;
 
-	precal_path()
-	afficher(pomme_x, pomme_y, POMME);
+	precal_path(pomme_x, pomme_y, les_x[0], les_y[0], &before_apple_x, &before_apple_y);
 
+	afficher(pomme_x, pomme_y, POMME);
 	clock_t begin = clock();
 	do
 	{
@@ -121,7 +121,7 @@ int main()
 			alors qu'il n'y a eu aucun déplacement à la fin du jeu.
 		*/
 
-		progresser(les_x, les_y, &collision_joueur, pomme_x, pomme_y);
+		progresser(les_x, les_y, &collision_joueur, &before_apple_x, &before_apple_y);
 		nbMouv++;
 
 		/*Collision et gestion du jeu avec la pomme*/
@@ -139,6 +139,7 @@ int main()
 				nb++;
 				pomme_x = les_pomme_x[nb];
 				pomme_y = les_pomme_y[nb];
+				precal_path(pomme_x, pomme_y, les_x[0], les_y[0], &before_apple_x, &before_apple_y);
 				afficher(pomme_x, pomme_y, POMME);
 			}
 		}
@@ -170,12 +171,8 @@ int main()
 	return EXIT_SUCCESS;
 }
 
-
-int val_abs(int x){
-	return x = (x < 0) ? -x : x; 
-}
-
-void precal_path(int pomme_x, int pomme_y, int tete_x, int tete_y, int *before_x_apple, int *before_y_apple){
+void precal_path(int pomme_x, int pomme_y, int tete_x, int tete_y, int *before_x_apple, int *before_y_apple)
+{
 	*before_x_apple = pomme_x - tete_x;
 	*before_y_apple = pomme_y - tete_y;
 }
@@ -272,7 +269,7 @@ void teleportation(int *tete_x, int *tete_y)
 		*tete_y = TAILLE_TABLEAU_Y; // Téléporteur en haut du monde
 }
 
-void progresser(corp_longeur les_x, corp_longeur les_y, bool *collision_joueur, int pomme_x, int pomme_y)
+void progresser(corp_longeur les_x, corp_longeur les_y, bool *collision_joueur, int *before_apple_x, int *before_apple_y)
 {
 	/**
 	 * @brief Calcule la nouvelle position du serpent quand il avance sans intervention du joueur
@@ -285,6 +282,7 @@ void progresser(corp_longeur les_x, corp_longeur les_y, bool *collision_joueur, 
 	{
 
 		int i = 0;
+		int indicator = 0;
 
 		les_x[taille_joueur + 1] = les_x[taille_joueur];
 		les_y[taille_joueur + 1] = les_y[taille_joueur];
@@ -295,13 +293,17 @@ void progresser(corp_longeur les_x, corp_longeur les_y, bool *collision_joueur, 
 			les_y[i] = les_y[i - 1];
 		}
 
-		if (pomme_x != les_x[0])
+		if (*before_apple_x != 0)
 		{
-			les_x[0] = (pomme_x < les_x[0]) ? les_x[0] - 1 : les_x[0] + 1;
+			indicator = ((*before_apple_x) < 0) ? -1 : 1;
+			les_x[0] = les_x[0] + indicator;
+			(*before_apple_x) = (*before_apple_x) - indicator;
 		}
-		else if (pomme_y != les_y[0])
+		else
 		{
-			les_y[0] = (pomme_y < les_y[0]) ? les_y[0] - 1 : les_y[0] + 1;
+			indicator = ((*before_apple_y) < 0) ? -1 : 1;
+			les_y[0] = les_y[0] + indicator;
+			(*before_apple_y) = (*before_apple_y) - indicator;
 		}
 
 		// teleportation(&les_x[0], &les_y[0]);
@@ -318,10 +320,11 @@ int dans_tableau(int eltx, int elty)
 	 */
 	int dedans = 1;
 	// Gestion des téléporteur au quatre coin du niveau
-	if (((eltx >= TAILLE_TABLEAU_X) && (elty == TAILLE_TABLEAU_Y / 2 + 1)) ||
-		((eltx <= 1) && (elty == TAILLE_TABLEAU_Y / 2 + 1)) ||
-		((elty >= TAILLE_TABLEAU_Y) && (eltx == TAILLE_TABLEAU_X / 2 + 1)) ||
-		((elty <= 1) && (eltx == TAILLE_TABLEAU_X / 2 + 1)))
+	if (((eltx >= TAILLE_TABLEAU_X) && (elty == TAILLE_TABLEAU_Y / 2 + 1)) 
+		|| ((eltx <= 1) && (elty == TAILLE_TABLEAU_Y / 2 + 1)) 
+		|| ((elty >= TAILLE_TABLEAU_Y) && (eltx == TAILLE_TABLEAU_X / 2 + 1)) 
+		|| ((elty <= 1) && (eltx == TAILLE_TABLEAU_X / 2 + 1))
+	   )
 	{
 		dedans = 0;
 	}
