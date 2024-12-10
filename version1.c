@@ -23,7 +23,7 @@
 
 /* Déclaration des constantes*/
 const char TETE = 'O', CORPS = 'X', STOP = 'a', MUR = '#', VIDE = ' ', POMME = '6';
-const int TEMPS = 50000;//200000;
+const int TEMPS = 200000;//200000;
 const int TAILLE = 10;
 const int LIM_MAX = 40;
 const int LIM_MIN = 1;
@@ -103,7 +103,7 @@ int main()
     ajouterPomme(&pomme);// Ajoute une nouvelle pomme
     
     disableEcho();//Enlève les caractères frappés à l'écran pour qu'ils ne soient pas visibles
-
+    clock_t begin = clock();
     while (toucheSaisie != STOP && !collision && pomme.nb != NB_POMME) { // Tant que touche != 'a'  et qu'il n'y a pas de collision et que le serpent n'a pas mangé 10 pommes faire
 		
         usleep(temps); // Temporisation
@@ -124,7 +124,9 @@ int main()
             mangePomme = false;  // Réinitialisation de la variable mangePomme
         }
     }
-        
+    clock_t end = clock();
+    double tmpsCPU = ((end - begin)*1.0) / CLOCKS_PER_SEC;
+    printf("temps cpu : %f", tmpsCPU);   
     enableEcho();//Rend à nouveau visibles les caractères frappés à l'écran
     printf("\n");
 
@@ -224,6 +226,17 @@ void progresser(int lesX[], int lesY[], bool *collision, bool *mangePomme, stPom
         effacer(lesX[i], lesY[i]);
     }
 
+
+    int tampon = lesX[0];
+    if(lesX[0] != pomme.pommeX[pomme.nb]){
+        lesX[0] = (lesX[0] <= pomme.pommeX[pomme.nb]) ? lesX[0] + 1 : lesX[0] - 1;
+    }
+    else if (tampon == lesX[0]){
+        if(lesY[0] != pomme.pommeY[pomme.nb]){
+            lesY[0] = (lesY[0] <= pomme.pommeY[pomme.nb]) ? lesY[0] + 1 : lesY[0] - 1;
+        }
+    }
+
     // Vérifie si le serpent mange une pomme
     if (lesX[0]==pomme.pommeX[pomme.nb] && lesY[0] == pomme.pommeY[pomme.nb] )
     {
@@ -234,25 +247,14 @@ void progresser(int lesX[], int lesY[], bool *collision, bool *mangePomme, stPom
         *mangePomme = false;//Renvoie false si pomme non mangée
     }
 
-    //Décale les valeurs des tableaux d'une case pour permettre à la tête d'avoir ses nouvelles coordonnées
-    for (int i = tailleSerpent - 1; i > 0; i--) {
-        lesX[i] = lesX[i - 1];
-        lesY[i] = lesY[i - 1];
-    }
-
-
-    int tampon = lesX[0];
-    if(lesX[0] != pomme.pommeX[pomme.nb]){
-        lesX[0] = (lesX[0] <= pomme.pommeX[pomme.nb]) ? lesX[0] + 1 : lesX[0] - 1;
-    }
-    else {
-        if (tampon == lesX[0]){
-        if(lesY[0] != pomme.pommeY[pomme.nb]){
-        lesY[0] = (lesY[0] <= pomme.pommeY[pomme.nb]) ? lesY[0] + 1 : lesY[0] - 1;
+    if(pomme.nb < NB_POMME || *mangePomme == true){
+        //Décale les valeurs des tableaux d'une case pour permettre à la tête d'avoir ses nouvelles coordonnées
+        for (int i = tailleSerpent; i >= 1; i--) {
+            lesX[i] = lesX[i - 1];
+            lesY[i] = lesY[i - 1];
         }
     }
-    }
-    
+
 
     // Vérifie si collision : si la prochaine position de la tête est un obstacle
     if (estObstacle(lesX[0], lesY[0])) {

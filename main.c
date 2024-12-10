@@ -1,9 +1,9 @@
 /**
  * @file main.c
- * @brief Programme d'un jeu de snake.
- * @author Dhennin Elouan
- * @version 4
- * @date 18/11/24
+ * @brief Programme d'un jeu de snake autonome
+ * @author Dhennin Elouan, Martin Esmeralda
+ * @version 1
+ * @date 10/12/24
  *
  *
  */
@@ -30,7 +30,7 @@ int taille_joueur = 10;
 
 /*Les constantes du jeu*/
 #define NB_POMMES 10
-#define CACHER_CURSEUR 70	  // Valeur absurde pour être sur d'être coller en bas de la console
+#define CACHER_CURSEUR 42 // Valeur absurde pour être sur d'être coller en bas de la console
 #define TAILLE_TABLEAU_Y 40
 #define TAILLE_TABLEAU_X 80
 
@@ -38,8 +38,7 @@ int taille_joueur = 10;
 #define CARACTERE_EFFACER ' ' // Pour effacer un élément
 #define MUR '#'
 #define POMME '6'
-#define VITESSE 200000// micro_sec
-
+#define VITESSE 200000 // micro_sec
 
 #define FERMER_JEU 'a' // Condition d'arrêt
 
@@ -87,10 +86,11 @@ int main()
 
 	/*variable lié à la pomme*/
 	t_pomme les_pomme_x = {75, 75, 78, 2, 8, 78, 74, 2, 72, 5};
-    t_pomme les_pomme_y = {8, 39, 2, 2, 5, 39, 33, 38, 35, 2}; 
+	t_pomme les_pomme_y = {8, 39, 2, 2, 5, 39, 33, 38, 35, 2};
 	int nb = 0;
 	int pomme_x = les_pomme_x[nb];
 	int pomme_y = les_pomme_y[nb];
+	int nbMouv = 0;
 	bool pomme_ramasser;
 
 	// apparaître à 20 sur le tableau et non sur la console (20 + décalage du tableau dans la console)
@@ -116,19 +116,21 @@ int main()
 		*/
 
 		progresser(les_x, les_y, &collision_joueur, pomme_x, pomme_y);
+		nbMouv++;
 
 		/*Collision et gestion du jeu avec la pomme*/
 		pomme_ramasser = collision_avec_pomme(les_x[0], les_y[0], pomme_x, pomme_y);
 
-		//collision_joueur = dans_tableau(les_x[0], les_y[0]);
+		// collision_joueur = dans_tableau(les_x[0], les_y[0]);
 
 		if (pomme_ramasser == true)
 		{
 			if (nb == NB_POMMES)
 				collision_joueur = true;
 
-			else{
-				nb ++;
+			else
+			{
+				nb++;
 				pomme_x = les_pomme_x[nb];
 				pomme_y = les_pomme_y[nb];
 				afficher(pomme_x, pomme_y, POMME);
@@ -152,15 +154,15 @@ int main()
 		*/
 	} while ((lettre != FERMER_JEU) && nb != NB_POMMES);
 	clock_t end = clock();
-	double tmpsCPU = ((end - begin)*1.0) / CLOCKS_PER_SEC;
+	double tmpsCPU = ((end - begin) * 1.0) / CLOCKS_PER_SEC;
 	enable_echo();
 
 	goto_x_y(1, CACHER_CURSEUR);
-	printf("temps cpu : %f", tmpsCPU);
+	printf("Temps CPU : %f\n", tmpsCPU);
+	printf("Nombre de mouvements : %d\n", nbMouv);
 
 	return EXIT_SUCCESS;
 }
-
 
 void afficher(int x, int y, char c)
 {
@@ -192,14 +194,14 @@ void init_plateau(type_tableau_2d tableau)
 		for (col = 0; col < TAILLE_TABLEAU_X; col++)
 		{
 
-			if (col == TAILLE_TABLEAU_X / 2 ||
+			/*if (col == TAILLE_TABLEAU_X / 2 ||
 				lig == TAILLE_TABLEAU_Y / 2 ||
 				(col == TAILLE_TABLEAU_Y - 1) / 2 ||
 				(lig == TAILLE_TABLEAU_Y - 1) / TAILLE_TABLEAU_Y / 2)
 			{
 				tableau[lig][col] = CARACTERE_EFFACER;
-			}
-			else if (lig == 0 || col == 0 ||
+			}*/
+			/*else */if (lig == 0 || col == 0 ||
 					 lig == TAILLE_TABLEAU_Y - 1 || col == TAILLE_TABLEAU_X - 1)
 			{
 				tableau[lig][col] = MUR;
@@ -230,10 +232,8 @@ void dessiner_plateau(type_tableau_2d plateau)
 	fflush(stdout);
 
 	goto_x_y((TAILLE_TABLEAU_X / 2) - 5, TAILLE_TABLEAU_Y + 1); // Centrer le titre
-	printf("Snake 3.00");
+	printf("Snake V1 SAE 1.02");
 }
-
-
 
 void teleportation(int *tete_x, int *tete_y)
 {
@@ -279,11 +279,13 @@ void progresser(corp_longeur les_x, corp_longeur les_y, bool *collision_joueur, 
 			les_y[i] = les_y[i - 1];
 		}
 
-		if(pomme_x != les_x[0]){
-			les_x[0] = (pomme_x < les_x[0])? les_x[0] - 1 : les_x[0] + 1;
+		if (pomme_x != les_x[0])
+		{
+			les_x[0] = (pomme_x < les_x[0]) ? les_x[0] - 1 : les_x[0] + 1;
 		}
-		else if(pomme_y != les_y[0]){
-			les_y[0] = (pomme_y < les_y[0])? les_y[0] -1 : les_y[0] + 1;
+		else if (pomme_y != les_y[0])
+		{
+			les_y[0] = (pomme_y < les_y[0]) ? les_y[0] - 1 : les_y[0] + 1;
 		}
 
 		// teleportation(&les_x[0], &les_y[0]);
@@ -397,7 +399,6 @@ void creation_du_serpent(int x, int y, corp_longeur les_x, corp_longeur les_y)
 	}
 }
 
-
 int collision_avec_pomme(int x_tete, int y_tete, int x_pomme, int y_pomme)
 {
 	/**
@@ -416,7 +417,6 @@ int collision_avec_pomme(int x_tete, int y_tete, int x_pomme, int y_pomme)
 	}
 	return collision;
 }
-
 
 /*		FONCTION DONNER PAR LES INSTRUCTIONS       */
 
