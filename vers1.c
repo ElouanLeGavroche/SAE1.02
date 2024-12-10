@@ -1,3 +1,5 @@
+/* test*/
+
 /**
  * @file version1.c
  * @brief Programme d'un jeu de snake autonome
