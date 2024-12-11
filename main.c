@@ -178,6 +178,11 @@ void precal_path(int pomme_x, int pomme_y, int tete_x, int tete_y, int *before_x
 {
 	*before_x_apple = pomme_x - tete_x;
 	*before_y_apple = pomme_y - tete_y;
+
+	if (*before_x_apple < 20){
+		
+	}
+
 }
 
 void afficher(int x, int y, char c)
