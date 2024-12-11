@@ -131,17 +131,20 @@ int main()
 
 		if (pomme_ramasser == true)
 		{
-			if (nb == NB_POMMES)
-				collision_joueur = true;
 
-			else
+			nb++;
+			pomme_x = les_pomme_x[nb];
+			pomme_y = les_pomme_y[nb];
+			
+			if (nb == NB_POMMES)
 			{
-				nb++;
-				pomme_x = les_pomme_x[nb];
-				pomme_y = les_pomme_y[nb];
+				collision_joueur = true;
+			}
+			else{
 				precal_path(pomme_x, pomme_y, les_x[0], les_y[0], &before_apple_x, &before_apple_y);
 				afficher(pomme_x, pomme_y, POMME);
 			}
+			
 		}
 
 		// Si le joueur obtien la dernière pomme, on veux qu'ils l'efface
