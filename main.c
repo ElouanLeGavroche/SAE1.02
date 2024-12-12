@@ -7,7 +7,6 @@
  *
  *
  */
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -18,7 +17,6 @@
 #include <string.h>
 
 // CONSTANTE DU JEU
-
 /*Constante du joueur*/
 #define TETE_JOUEUR 'O' // Tête du joueur
 #define CORP_JOUEUR 'X' // Corp du joueur
@@ -38,18 +36,35 @@ int taille_joueur = 10;
 #define CARACTERE_EFFACER ' ' // Pour effacer un élément
 #define MUR '#'
 #define POMME '6'
-#define VITESSE 200 // micro_sec
-
+#define VITESSE 60000 // micro_sec
 #define FERMER_JEU 'a' // Condition d'arrêt
+
+/*Constantes des position des téléporteurs*/
+#define T_HAUT_X 40
+#define T_HAUT_Y 1 - 1
+
+#define T_BAS_X 40
+#define T_BAS_Y 40 + 1
+
+#define T_DROITE_X 80 + 1
+#define T_DROITE_Y 20
+
+#define T_GAUCHE_X 1 - 1
+#define T_GAUCHE_Y 20
+
 
 // Définir les types tableau
 // + 1 car la dernière valeur sert au tampon du dernier élément,
 // pour l'effacer correctementpomme
 typedef int corp_longeur[LONGEUR_MAX + 1];
 typedef int t_pomme[NB_POMMES];
-
 // Définir le type du tableau à deux dimensions
 typedef char type_tableau_2d[TAILLE_TABLEAU_Y][TAILLE_TABLEAU_X];
+
+/* Variables globale*/
+int tampon_pomme_x = 0;
+int tampon_pomme_y = 0;
+bool vers_teleporteur = false;
 
 /* Initialisations des fonctions et des procédure */
 int kbhit();						  // équivalent d'un INKEYS en BASIC
@@ -70,83 +85,66 @@ void creation_du_serpent(int x, int y, corp_longeur les_x, corp_longeur les_y);
 void enable_echo();
 void disable_echo();
 void dessiner_plateau(type_tableau_2d plateau);
-void precal_path(int pomme_x, int pomme_y, int tete_x, int tete_y, int *before_x_apple, int *before_y_apple);
-
+void precal_path(t_pomme les_pomme_x, t_pomme les_pomme_y, int nb, int tete_x, int tete_y, int *before_x_apple, int *before_y_apple);
 char lire_entrer();
 
 int main()
 {
 	system("clear");
-
 	char lettre = CARACTERE_EFFACER; // Valeur du caractère espace
-
 	type_tableau_2d plateau; // Plateau de jeu
 	corp_longeur les_x;		 // Position du corps en X
 	corp_longeur les_y;		 // Position du corps en Y
-
 	bool collision_joueur = false;
 
 	/*variable lié à la pomme*/
 	t_pomme les_pomme_x = {75, 75, 78, 2, 8, 78, 74, 2, 72, 5};
 	t_pomme les_pomme_y = {8, 39, 2, 2, 5, 39, 33, 38, 35, 2};
 	int nb = 0;
-	int pomme_x = les_pomme_x[nb];
-	int pomme_y = les_pomme_y[nb];
 	int nbMouv = 0;
 	bool pomme_ramasser;
 
 	// apparaître à 20 sur le tableau et non sur la console (20 + décalage du tableau dans la console)
-
 	creation_du_serpent(POS_INITIAL_JOUEUR_X + 1, POS_INITIAL_JOUEUR_Y + 1, les_x, les_y);
-
 	init_plateau(plateau);
 	dessiner_plateau(plateau);
-
 	disable_echo();
 
 	int before_apple_x = 0;
 	int before_apple_y = 0;
 
-	precal_path(pomme_x, pomme_y, les_x[0], les_y[0], &before_apple_x, &before_apple_y);
-
-	afficher(pomme_x, pomme_y, POMME);
+	precal_path(les_pomme_x, les_pomme_y, nb, les_x[0], les_y[0], &before_apple_x, &before_apple_y);
+	afficher(les_pomme_x[nb], les_pomme_y[nb], POMME);
 	clock_t begin = clock();
+
 	do
 	{
-
 		// Lire les entrer au clavier
 		lettre = lire_entrer();
 		/*
 			Cette condition est ici pour éviter d'effacer le bout du serpent
 			alors qu'il n'y a eu aucun déplacement à la fin du jeu.
 		*/
-
 		progresser(les_x, les_y, &collision_joueur, &before_apple_x, &before_apple_y);
 		nbMouv++;
-
 		/*Collision et gestion du jeu avec la pomme*/
-		pomme_ramasser = collision_avec_pomme(les_x[0], les_y[0], pomme_x, pomme_y);
-
+		pomme_ramasser = collision_avec_pomme(les_x[0], les_y[0], les_pomme_x[nb], les_pomme_y[nb]);
 		// collision_joueur = dans_tableau(les_x[0], les_y[0]);
 
 		if (pomme_ramasser == true)
 		{
-
 			nb++;
-			pomme_x = les_pomme_x[nb];
-			pomme_y = les_pomme_y[nb];
 			
 			if (nb == NB_POMMES)
 			{
 				collision_joueur = true;
 			}
 			else{
-				precal_path(pomme_x, pomme_y, les_x[0], les_y[0], &before_apple_x, &before_apple_y);
-				afficher(pomme_x, pomme_y, POMME);
+				precal_path(les_pomme_x, les_pomme_y, nb, les_x[0], les_y[0], &before_apple_x, &before_apple_y);
+				afficher(les_pomme_x[nb], les_pomme_y[nb], POMME);
 			}
 			
 		}
-
 		// Si le joueur obtien la dernière pomme, on veux qu'ils l'efface
 		// Alors malgré le fait qu'il aie fini, on actualise ça position pour
 		// Montrer la pomme manger
@@ -156,7 +154,6 @@ int main()
 			dessiner_serpent(les_x, les_y);
 			usleep(VITESSE);
 		}
-
 		/*
 		Le temps de jeu étant dérisoire, nous prenons en compte uniquement le temps
 		D'attente entre deux image. Qui est finalement la majorité du temps de jeu
@@ -166,25 +163,59 @@ int main()
 	clock_t end = clock();
 	double tmpsCPU = ((end - begin) * 1.0) / CLOCKS_PER_SEC;
 	enable_echo();
-
 	goto_x_y(1, CACHER_CURSEUR);
 	printf("Temps CPU : %f\n", tmpsCPU);
 	printf("Nombre de mouvements : %d\n", nbMouv);
-
 	return EXIT_SUCCESS;
 }
-
-void precal_path(int pomme_x, int pomme_y, int tete_x, int tete_y, int *before_x_apple, int *before_y_apple)
+void precal_path(t_pomme les_pomme_x, t_pomme les_pomme_y, int nb,  int tete_x, int tete_y, int *before_x_apple, int *before_y_apple)
 {
-	*before_x_apple = pomme_x - tete_x;
-	*before_y_apple = pomme_y - tete_y;
 
-	if (*before_x_apple < 20){
+	int tamp_x;
+	int tamp_y;
+
+	/*gestion des téléporteurs*/
+
+	/*Téléporteur gauche*/
+	if ((les_pomme_x[nb] - tete_x) > 40){
+		tamp_x = les_pomme_x[nb];
+		tamp_y = les_pomme_y[nb];
+
+		les_pomme_x[nb] = T_GAUCHE_X;
+		les_pomme_y[nb] = T_GAUCHE_Y;
+
+		les_pomme_x[nb] = tamp_x;
+		les_pomme_y[nb] = tamp_y;
+
 		
 	}
 
-}
 
+	*before_x_apple = les_pomme_x[nb] - tete_x;
+	*before_y_apple = les_pomme_y[nb] - tete_y;
+
+}
+int collision_avec_lui_meme(corp_longeur les_x, corp_longeur les_y, int tete_x, int tete_y)
+{
+	/**
+	 * @brief regarde si la tête du joueur rentre dans le corps du joueur
+	 * @param les_x corps en x du joueur
+	 * @param les_y corps en y du joueur
+	 * @param tete_x
+	 * @param tete_y
+	 * @return 0 si pas de collision, 1 si collision
+	 */
+	int i;
+	bool collision = false;
+	for (i = 1; i < taille_joueur; i++)
+	{
+		if ((tete_x == les_x[i]) && (tete_y == les_y[i]))
+		{
+			collision = true;
+		}
+	}
+	return collision;
+}
 void afficher(int x, int y, char c)
 {
 	/**
@@ -193,28 +224,22 @@ void afficher(int x, int y, char c)
 	 * @param y position y.
 	 * @param c caractère a afficher aux cordonnées donner.
 	 */
-
 	goto_x_y(x, y);
 	printf("%c", c);
 	goto_x_y(1, CACHER_CURSEUR); // cacher le curseur pour une meilleur lisibilité
 }
-
 void init_plateau(type_tableau_2d tableau)
 {
 	/**
 	 * @brief Permet de dessiner le tableau de jeu. Mais aussi l'interface autour !
 	 * @param tableau : tableau à deux dimension qui représente le tableau de jeu
 	 */
-
 	int lig = 0;
 	int col = 0;
-
 	for (lig = 0; lig < TAILLE_TABLEAU_Y; lig++)
 	{
-
 		for (col = 0; col < TAILLE_TABLEAU_X; col++)
 		{
-
 			if (col == TAILLE_TABLEAU_X / 2 ||
 				lig == TAILLE_TABLEAU_Y / 2 ||
 				(col == TAILLE_TABLEAU_Y - 1) / 2 ||
@@ -227,7 +252,6 @@ void init_plateau(type_tableau_2d tableau)
 			{
 				tableau[lig][col] = MUR;
 			}
-
 			else
 			{
 				tableau[lig][col] = CARACTERE_EFFACER;
@@ -235,7 +259,6 @@ void init_plateau(type_tableau_2d tableau)
 		}
 	}
 }
-
 void dessiner_plateau(type_tableau_2d plateau)
 {
 	/**
@@ -251,11 +274,9 @@ void dessiner_plateau(type_tableau_2d plateau)
 		}
 	}
 	fflush(stdout);
-
 	goto_x_y((TAILLE_TABLEAU_X / 2) - 5, TAILLE_TABLEAU_Y + 1); // Centrer le titre
 	printf("Snake V1 SAE 1.02");
 }
-
 void teleportation(int *tete_x, int *tete_y)
 {
 	/**
@@ -263,20 +284,15 @@ void teleportation(int *tete_x, int *tete_y)
 	 * @param *tete_x tête du joueur en x en sortie
 	 * @param *tete_y tête du joueur en y en sortie
 	 */
-
 	if (*tete_x > TAILLE_TABLEAU_X && *tete_y == TAILLE_TABLEAU_Y / 2 + 1)
 		*tete_x = 1; // Téléporteur à droite du monde
-
 	else if (*tete_x < 1 && *tete_y == TAILLE_TABLEAU_Y / 2 + 1)
 		*tete_x = TAILLE_TABLEAU_X; // Téléporteur à gauche du monde
-
 	else if ((*tete_y > TAILLE_TABLEAU_Y) && (*tete_y == TAILLE_TABLEAU_X / 2 + 1))
 		*tete_y = 1; // Téléporteur en bas du monde
-
 	else if ((*tete_y < 1) && (*tete_x == TAILLE_TABLEAU_X / 2 + 1))
 		*tete_y = TAILLE_TABLEAU_Y; // Téléporteur en haut du monde
 }
-
 void progresser(corp_longeur les_x, corp_longeur les_y, bool *collision_joueur, int *before_apple_x, int *before_apple_y)
 {
 	/**
@@ -288,36 +304,55 @@ void progresser(corp_longeur les_x, corp_longeur les_y, bool *collision_joueur, 
 
 	if (*collision_joueur == false)
 	{
-
 		int i = 0;
 		int indicator = 0;
-
 		les_x[taille_joueur + 1] = les_x[taille_joueur];
 		les_y[taille_joueur + 1] = les_y[taille_joueur];
-
 		for (i = taille_joueur; i >= 1; i--)
 		{
 			les_x[i] = les_x[i - 1];
 			les_y[i] = les_y[i - 1];
 		}
-
 		if (*before_apple_x != 0)
 		{
 			indicator = ((*before_apple_x) < 0) ? -1 : 1;
-			les_x[0] = les_x[0] + indicator;
-			(*before_apple_x) = (*before_apple_x) - indicator;
+            if ((collision_avec_lui_meme(les_x, les_y, les_x[0] + indicator, les_y[0])==false)&&(collision_avec_lui_meme(les_x, les_y, les_x[0] + indicator + indicator, les_y[0])==false))
+            {
+                les_x[0] = les_x[0] + indicator;
+			    (*before_apple_x) = (*before_apple_x) - indicator;
+            }
+            else
+            {   
+                indicator = ((*before_apple_y) < 0) ? -1 : 1;
+                if((collision_avec_lui_meme(les_x, les_y, les_x[0], les_y[0] + indicator)==false)&&(collision_avec_lui_meme(les_x, les_y, les_x[0], les_y[0] + indicator + indicator)==false))
+                {
+                    les_y[0] = les_y[0] + indicator;
+			        (*before_apple_y) = (*before_apple_y) - indicator;
+                }
+            }
 		}
 		else
-		{
+		{   
 			indicator = ((*before_apple_y) < 0) ? -1 : 1;
-			les_y[0] = les_y[0] + indicator;
-			(*before_apple_y) = (*before_apple_y) - indicator;
+            if((collision_avec_lui_meme(les_x, les_y, les_x[0], les_y[0] + indicator)==false)&&(collision_avec_lui_meme(les_x, les_y, les_x[0], les_y[0] + indicator + indicator)==false))
+            {
+                les_y[0] = les_y[0] + indicator;
+                (*before_apple_y) = (*before_apple_y) - indicator;
+            }
+            
+            else
+            {
+                indicator = ((*before_apple_x) < 0) ? -1 : 1;
+                if ((collision_avec_lui_meme(les_x, les_y, les_x[0] + indicator, les_y[0])==false)&&(collision_avec_lui_meme(les_x, les_y, les_x[0] + indicator + indicator, les_y[0])==false))
+                {
+                    les_x[0] = les_x[0] + indicator;
+                    (*before_apple_x) = (*before_apple_x) - indicator;
+                }
+            }
 		}
-
 		// teleportation(&les_x[0], &les_y[0]);
 	}
 }
-
 int dans_tableau(int eltx, int elty)
 {
 	/**
@@ -345,7 +380,6 @@ int dans_tableau(int eltx, int elty)
 	}
 	return dedans;
 }
-
 void dessiner_serpent(corp_longeur les_x, corp_longeur les_y)
 {
 	/**
@@ -354,19 +388,14 @@ void dessiner_serpent(corp_longeur les_x, corp_longeur les_y)
 	 * @param les_x liste des valeurs en x
 	 * @param les_y liste des valeurs en y
 	 */
-
 	int i;
 	for (i = 1; i < taille_joueur; i++)
 	{
-
 		afficher(les_x[i], les_y[i], CORP_JOUEUR);
 	}
-
 	afficher(les_x[0], les_y[0], TETE_JOUEUR);
-
 	fflush(stdout);
 }
-
 void effacer(int x, int y)
 {
 	/**
@@ -377,7 +406,6 @@ void effacer(int x, int y)
 	afficher(x, y, CARACTERE_EFFACER);
 	fflush(stdout);
 }
-
 void effacer_serpent(corp_longeur les_x, corp_longeur les_y)
 {
 	/**
@@ -385,18 +413,15 @@ void effacer_serpent(corp_longeur les_x, corp_longeur les_y)
 	 * @param les_x liste des valeurs en x
 	 * @param les_y liste des valeurs en y
 	 */
-
 	// Efface uniquement le dernier éléments du joueura
 	effacer(les_x[taille_joueur], les_y[taille_joueur]);
 }
-
 char lire_entrer()
 {
 	/**
 	 * @brief va lire les entrer de l'utilisateur
 	 * @return retourne la lettre qui a été entrer par l'utilisateur
 	 */
-
 	int entrer;
 	char lettre = CARACTERE_EFFACER;
 	entrer = kbhit();
@@ -406,7 +431,6 @@ char lire_entrer()
 	}
 	return lettre;
 }
-
 void creation_du_serpent(int x, int y, corp_longeur les_x, corp_longeur les_y)
 {
 	/**
@@ -418,14 +442,12 @@ void creation_du_serpent(int x, int y, corp_longeur les_x, corp_longeur les_y)
 	 *
 	 */
 	int i = 0;
-
 	for (i = 0; i < taille_joueur; i++)
 	{
 		les_x[i] = x - i;
 		les_y[i] = y;
 	}
 }
-
 int collision_avec_pomme(int x_tete, int y_tete, int x_pomme, int y_pomme)
 {
 	/**
@@ -436,7 +458,6 @@ int collision_avec_pomme(int x_tete, int y_tete, int x_pomme, int y_pomme)
 	 * @param y_pomme position de la pomme en y
 	 * @return
 	 */
-
 	int collision = 0;
 	if ((x_tete == x_pomme) && (y_tete == y_pomme))
 	{
@@ -444,20 +465,16 @@ int collision_avec_pomme(int x_tete, int y_tete, int x_pomme, int y_pomme)
 	}
 	return collision;
 }
-
 /*		FONCTION DONNER PAR LES INSTRUCTIONS       */
-
 int kbhit()
 {
 	// la fonction retourne :
 	// 1 si un caractere est present
 	// 0 si pas de caractere present
-
 	int un_caractere = 0;
 	struct termios oldt, newt;
 	int ch;
 	int oldf;
-
 	// mettre le terminal en mode non bloquant
 	tcgetattr(STDIN_FILENO, &oldt);
 	newt = oldt;
@@ -465,13 +482,10 @@ int kbhit()
 	tcsetattr(STDIN_FILENO, TCSANOW, &newt);
 	oldf = fcntl(STDIN_FILENO, F_GETFL, 0);
 	fcntl(STDIN_FILENO, F_SETFL, oldf | O_NONBLOCK);
-
 	ch = getchar();
-
 	// restaurer le mode du terminal
 	tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
 	fcntl(STDIN_FILENO, F_SETFL, oldf);
-
 	if (ch != EOF)
 	{
 		ungetc(ch, stdin);
@@ -479,7 +493,6 @@ int kbhit()
 	}
 	return un_caractere;
 }
-
 void goto_x_y(int x, int y)
 {
 	/**
@@ -489,21 +502,17 @@ void goto_x_y(int x, int y)
 	 */
 	printf("\033[%d;%df", y, x);
 }
-
 void disable_echo()
 {
 	struct termios tty;
-
 	// Obtenir les attributs du terminal
 	if (tcgetattr(STDIN_FILENO, &tty) == -1)
 	{
 		perror("tcgetattr");
 		exit(EXIT_FAILURE);
 	}
-
 	// Desactiver le flag ECHO
 	tty.c_lflag &= ~ECHO;
-
 	// Appliquer les nouvelles configurations
 	if (tcsetattr(STDIN_FILENO, TCSANOW, &tty) == -1)
 	{
@@ -511,21 +520,17 @@ void disable_echo()
 		exit(EXIT_FAILURE);
 	}
 }
-
 void enable_echo()
 {
 	struct termios tty;
-
 	// Obtenir les attributs du terminal
 	if (tcgetattr(STDIN_FILENO, &tty) == -1)
 	{
 		perror("tcgetattr");
 		exit(EXIT_FAILURE);
 	}
-
 	// Reactiver le flag ECHO
 	tty.c_lflag |= ECHO;
-
 	// Appliquer les nouvelles configurations
 	if (tcsetattr(STDIN_FILENO, TCSANOW, &tty) == -1)
 	{
