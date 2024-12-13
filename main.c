@@ -61,11 +61,6 @@ typedef int t_pomme[NB_POMMES];
 // Définir le type du tableau à deux dimensions
 typedef char type_tableau_2d[TAILLE_TABLEAU_Y][TAILLE_TABLEAU_X];
 
-/* Variables globale*/
-int tampon_pomme_x = 0;
-int tampon_pomme_y = 0;
-bool vers_teleporteur = false;
-
 /* Initialisations des fonctions et des procédure */
 int kbhit();						  // équivalent d'un INKEYS en BASIC
 int dans_tableau(int eltx, int elty); // Vérifie que l'élément se trouve dans le tableau pour le dessiner
@@ -85,7 +80,7 @@ void creation_du_serpent(int x, int y, corp_longeur les_x, corp_longeur les_y);
 void enable_echo();
 void disable_echo();
 void dessiner_plateau(type_tableau_2d plateau);
-void precal_path(t_pomme les_pomme_x, t_pomme les_pomme_y, int nb, int tete_x, int tete_y, int *before_x_apple, int *before_y_apple);
+void precal_path(t_pomme les_pommes_x, t_pomme les_pommes_y, int nb, int tete_x, int tete_y, int *before_x_apple, int *before_y_apple);
 char lire_entrer();
 
 int main()
@@ -98,8 +93,9 @@ int main()
 	bool collision_joueur = false;
 
 	/*variable lié à la pomme*/
-	t_pomme les_pomme_x = {75, 75, 78, 2, 8, 78, 74, 2, 72, 5};
-	t_pomme les_pomme_y = {8, 39, 2, 2, 5, 39, 33, 38, 35, 2};
+	t_pomme les_pommes_x = {75, 75, 78, 2, 8, 78, 74, 2, 72, 5};
+	t_pomme les_pommes_y = {8, 39, 2, 2, 5, 39, 33, 38, 35, 2};
+
 	int nb = 0;
 	int nbMouv = 0;
 	bool pomme_ramasser;
@@ -113,8 +109,12 @@ int main()
 	int before_apple_x = 0;
 	int before_apple_y = 0;
 
-	precal_path(les_pomme_x, les_pomme_y, nb, les_x[0], les_y[0], &before_apple_x, &before_apple_y);
-	afficher(les_pomme_x[nb], les_pomme_y[nb], POMME);
+	// Va servir pour savoir si le joueur à été téléporter ou non
+	int tamp_x = les_x[0];
+	int tamp_y = les_y[0];
+
+	precal_path(les_pommes_x, les_pommes_y, nb, les_x[0], les_y[0], &before_apple_x, &before_apple_y);
+	afficher(les_pommes_x[nb], les_pommes_y[nb], POMME);
 	clock_t begin = clock();
 
 	do
@@ -126,11 +126,23 @@ int main()
 			alors qu'il n'y a eu aucun déplacement à la fin du jeu.
 		*/
 		progresser(les_x, les_y, &collision_joueur, &before_apple_x, &before_apple_y);
+
+		tamp_x = les_x[0];
+		tamp_y = les_y[0];
+
+		teleportation(&les_x[0], &les_y[0]);
+
+		//Si le joueur est téléporter, alors on recalcule la distance
+		if(tamp_x != les_x[0] || tamp_y != les_y[0]){
+			precal_path(les_pommes_x, les_pommes_y, nb, les_x[0], les_y[0], &before_apple_x, &before_apple_y);
+		}
+
 		nbMouv++;
 		/*Collision et gestion du jeu avec la pomme*/
-		pomme_ramasser = collision_avec_pomme(les_x[0], les_y[0], les_pomme_x[nb], les_pomme_y[nb]);
+		pomme_ramasser = collision_avec_pomme(les_x[0], les_y[0], les_pommes_x[nb], les_pommes_y[nb]);
 		// collision_joueur = dans_tableau(les_x[0], les_y[0]);
 
+		
 		if (pomme_ramasser == true)
 		{
 			nb++;
@@ -140,8 +152,9 @@ int main()
 				collision_joueur = true;
 			}
 			else{
-				precal_path(les_pomme_x, les_pomme_y, nb, les_x[0], les_y[0], &before_apple_x, &before_apple_y);
-				afficher(les_pomme_x[nb], les_pomme_y[nb], POMME);
+				printf("OUI %d", nb);
+				precal_path(les_pommes_x, les_pommes_y, nb, les_x[0], les_y[0], &before_apple_x, &before_apple_y);
+				afficher(les_pommes_x[nb], les_pommes_y[nb], POMME);
 			}
 			
 		}
@@ -160,40 +173,56 @@ int main()
 		du joueur. Attendre...
 		*/
 	} while ((lettre != FERMER_JEU) && nb != NB_POMMES);
+
 	clock_t end = clock();
 	double tmpsCPU = ((end - begin) * 1.0) / CLOCKS_PER_SEC;
+
 	enable_echo();
 	goto_x_y(1, CACHER_CURSEUR);
+
 	printf("Temps CPU : %f\n", tmpsCPU);
 	printf("Nombre de mouvements : %d\n", nbMouv);
+
 	return EXIT_SUCCESS;
 }
-void precal_path(t_pomme les_pomme_x, t_pomme les_pomme_y, int nb,  int tete_x, int tete_y, int *before_x_apple, int *before_y_apple)
-{
 
-	int tamp_x;
-	int tamp_y;
+void precal_path(t_pomme les_pommes_x, t_pomme les_pommes_y, int nb,  int tete_x, int tete_y, int *before_x_apple, int *before_y_apple)
+{
 
 	/*gestion des téléporteurs*/
 
 	/*Téléporteur gauche*/
-	if ((les_pomme_x[nb] - tete_x) > 40){
-		tamp_x = les_pomme_x[nb];
-		tamp_y = les_pomme_y[nb];
-
-		les_pomme_x[nb] = T_GAUCHE_X;
-		les_pomme_y[nb] = T_GAUCHE_Y;
-
-		les_pomme_x[nb] = tamp_x;
-		les_pomme_y[nb] = tamp_y;
-
+	if ((les_pommes_x[nb] - tete_x) > 40){
+	*before_x_apple = T_GAUCHE_X - tete_x;
+	*before_y_apple = T_GAUCHE_Y - tete_y;
 		
 	}
 
+	/*téléporteur droite*/
+	else if ((tete_x - les_pommes_x[nb]) > 40){
+		*before_x_apple = T_DROITE_X - tete_x;
+		*before_y_apple = T_DROITE_Y - tete_y;
 
-	*before_x_apple = les_pomme_x[nb] - tete_x;
-	*before_y_apple = les_pomme_y[nb] - tete_y;
+	}
 
+	/*Téléporteur haut*/
+	else if ((les_pommes_y[nb] - tete_y) > 20){
+		*before_x_apple = T_HAUT_X - tete_x;
+		*before_y_apple = T_HAUT_Y - tete_y;
+			
+		}
+	
+	/*téléporteur bas*/
+	else if ((tete_y - les_pommes_y[nb]) > 20){
+		*before_x_apple = T_BAS_X - tete_x;
+		*before_y_apple = T_BAS_Y - tete_y;
+	
+	}
+
+	else{
+		*before_x_apple = les_pommes_x[nb] - tete_x;
+		*before_y_apple = les_pommes_y[nb] - tete_y;
+	}
 }
 int collision_avec_lui_meme(corp_longeur les_x, corp_longeur les_y, int tete_x, int tete_y)
 {
@@ -284,14 +313,22 @@ void teleportation(int *tete_x, int *tete_y)
 	 * @param *tete_x tête du joueur en x en sortie
 	 * @param *tete_y tête du joueur en y en sortie
 	 */
-	if (*tete_x > TAILLE_TABLEAU_X && *tete_y == TAILLE_TABLEAU_Y / 2 + 1)
+
+	if (*tete_x > TAILLE_TABLEAU_X && *tete_y == TAILLE_TABLEAU_Y / 2 + 1){
 		*tete_x = 1; // Téléporteur à droite du monde
-	else if (*tete_x < 1 && *tete_y == TAILLE_TABLEAU_Y / 2 + 1)
+	}
+	else if (*tete_x < 1 && *tete_y == TAILLE_TABLEAU_Y / 2 + 1){
 		*tete_x = TAILLE_TABLEAU_X; // Téléporteur à gauche du monde
-	else if ((*tete_y > TAILLE_TABLEAU_Y) && (*tete_y == TAILLE_TABLEAU_X / 2 + 1))
+	}
+
+	else if ((*tete_y > TAILLE_TABLEAU_Y) && (*tete_y == TAILLE_TABLEAU_X / 2 + 1)){
 		*tete_y = 1; // Téléporteur en bas du monde
-	else if ((*tete_y < 1) && (*tete_x == TAILLE_TABLEAU_X / 2 + 1))
+	}
+
+	else if ((*tete_y < 1) && (*tete_x == TAILLE_TABLEAU_X / 2 + 1)){
 		*tete_y = TAILLE_TABLEAU_Y; // Téléporteur en haut du monde
+	}
+
 }
 void progresser(corp_longeur les_x, corp_longeur les_y, bool *collision_joueur, int *before_apple_x, int *before_apple_y)
 {
@@ -350,7 +387,6 @@ void progresser(corp_longeur les_x, corp_longeur les_y, bool *collision_joueur, 
                 }
             }
 		}
-		// teleportation(&les_x[0], &les_y[0]);
 	}
 }
 int dans_tableau(int eltx, int elty)
