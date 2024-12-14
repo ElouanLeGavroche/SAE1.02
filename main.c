@@ -2,8 +2,8 @@
  * @file main.c
  * @brief Programme d'un jeu de snake autonome
  * @author Dhennin Elouan, Martin Esmeralda
- * @version 1
- * @date 10/12/24
+ * @version 2
+ * @date 14/12/24
  *
  *
  */
@@ -40,17 +40,17 @@ int taille_joueur = 10;
 #define FERMER_JEU 'a' // Condition d'arrêt
 
 /*Constantes des position des téléporteurs*/
-#define T_HAUT_X 40
+#define T_HAUT_X 41
 #define T_HAUT_Y 1 - 1
 
-#define T_BAS_X 40
+#define T_BAS_X 41
 #define T_BAS_Y 40 + 1
 
 #define T_DROITE_X 80 + 1
-#define T_DROITE_Y 20
+#define T_DROITE_Y 21
 
 #define T_GAUCHE_X 1 - 1
-#define T_GAUCHE_Y 20
+#define T_GAUCHE_Y 21
 
 
 // Définir les types tableau
@@ -58,30 +58,39 @@ int taille_joueur = 10;
 // pour l'effacer correctementpomme
 typedef int corp_longeur[LONGEUR_MAX + 1];
 typedef int t_pomme[NB_POMMES];
+
 // Définir le type du tableau à deux dimensions
 typedef char type_tableau_2d[TAILLE_TABLEAU_Y][TAILLE_TABLEAU_X];
 
-/* Initialisations des fonctions et des procédure */
-int kbhit();						  // équivalent d'un INKEYS en BASIC
-int dans_tableau(int eltx, int elty); // Vérifie que l'élément se trouve dans le tableau pour le dessiner
-int confirmer_position(int indice, corp_longeur liste, int nouvelle_position);
-int collision_avec_pomme(int x_tete, int y_tete, int x_pomme, int y_pomme);
-int val_abs(int x);
-
+/* Initialisations des fonctions et des procédures */
 void teleportation(int *tete_x, int *tete_y);
-void goto_x_y(int x, int y);		 // équivalent d'un LOCATE en Basic
-void afficher(int x, int y, char c); // Affiche en lien avec goto_x_y un caractère à l'écran
 void init_plateau(type_tableau_2d tableau);
+void creation_du_serpent(int x, int y, corp_longeur les_x, corp_longeur les_y);
+
+
+/*Procédures de calcule de direction pour le CPU*/
+void precal_path(t_pomme les_pommes_x, t_pomme les_pommes_y, int nb, int tete_x, int tete_y, int *before_x_apple, int *before_y_apple);
+void progresser(corp_longeur les_x, corp_longeur les_y, bool *collision_joueur, int *before_x_apple, int *before_y_apple);
+
+
+/*Procédures/Fonctions de communication entre la machine et l'utilisateur*/
+char lire_entrer();
+int kbhit();// équivalent d'un INKEYS en BASIC
+
+/*Procédures d'affichage*/
+void afficher(int x, int y, char c); // Affiche en lien avec goto_x_y un caractère à l'écran
 void dessiner_serpent(corp_longeur les_x, corp_longeur les_y);
 void effacer_serpent(corp_longeur les_x, corp_longeur les_y);
 void effacer(int x, int y);
-void progresser(corp_longeur les_x, corp_longeur les_y, bool *collision_joueur, int *before_x_apple, int *before_y_apple);
-void creation_du_serpent(int x, int y, corp_longeur les_x, corp_longeur les_y);
+void goto_x_y(int x, int y); // équivalent d'un LOCATE en Basic
+void dessiner_plateau(type_tableau_2d plateau);
 void enable_echo();
 void disable_echo();
-void dessiner_plateau(type_tableau_2d plateau);
-void precal_path(t_pomme les_pommes_x, t_pomme les_pommes_y, int nb, int tete_x, int tete_y, int *before_x_apple, int *before_y_apple);
-char lire_entrer();
+
+/*Fonctions de calcul de collision*/
+int collision_mur(int tete_x, int tete_y);
+int collision_avec_pomme(int x_tete, int y_tete, int x_pomme, int y_pomme);
+int collision_avec_lui_meme(corp_longeur les_x, corp_longeur les_y, int tete_x, int tete_y);
 
 int main()
 {
@@ -140,7 +149,6 @@ int main()
 		nbMouv++;
 		/*Collision et gestion du jeu avec la pomme*/
 		pomme_ramasser = collision_avec_pomme(les_x[0], les_y[0], les_pommes_x[nb], les_pommes_y[nb]);
-		// collision_joueur = dans_tableau(les_x[0], les_y[0]);
 
 		
 		if (pomme_ramasser == true)
@@ -245,6 +253,31 @@ int collision_avec_lui_meme(corp_longeur les_x, corp_longeur les_y, int tete_x, 
 	}
 	return collision;
 }
+
+int collision_mur(int tete_x, int tete_y){
+	bool dedans = false;
+
+	// Gestion des téléporteur au quatre coin du niveau
+	if (((tete_x >= TAILLE_TABLEAU_X) && (tete_y == TAILLE_TABLEAU_Y / 2 + 1)) ||
+		((tete_x <= 1) && (tete_y == TAILLE_TABLEAU_Y / 2 + 1)) ||
+		((tete_y >= TAILLE_TABLEAU_Y) && (tete_x == TAILLE_TABLEAU_X / 2 + 1)) ||
+		((tete_y <= 1) && (tete_x == TAILLE_TABLEAU_X / 2 + 1)))
+	{
+		dedans = 1;
+	}
+
+ 	if ((tete_x < TAILLE_TABLEAU_X	 // Si le joueur touche le mur droit
+		&& tete_x >= 2)				 // Si le joueur touche le mur gauche
+	   	&& (tete_y < TAILLE_TABLEAU_Y // Si le joueur touche le mur bas
+		&& tete_y >= 2))			 // Si le joueur touche le mur haut
+	{
+  		dedans = true;
+	}
+
+	return dedans;
+}
+
+
 void afficher(int x, int y, char c)
 {
 	/**
@@ -353,7 +386,9 @@ void progresser(corp_longeur les_x, corp_longeur les_y, bool *collision_joueur, 
 		if (*before_apple_x != 0)
 		{
 			indicator = ((*before_apple_x) < 0) ? -1 : 1;
-            if ((collision_avec_lui_meme(les_x, les_y, les_x[0] + indicator, les_y[0])==false)&&(collision_avec_lui_meme(les_x, les_y, les_x[0] + indicator + indicator, les_y[0])==false))
+            if ((collision_avec_lui_meme(les_x, les_y, les_x[0] + indicator, les_y[0])==false)
+				&&(collision_avec_lui_meme(les_x, les_y, les_x[0] + indicator + indicator, les_y[0])==false)
+				&&(collision_mur(les_x[0] + indicator, les_y[0]) == true))
             {
                 les_x[0] = les_x[0] + indicator;
 			    (*before_apple_x) = (*before_apple_x) - indicator;
@@ -361,7 +396,9 @@ void progresser(corp_longeur les_x, corp_longeur les_y, bool *collision_joueur, 
             else
             {   
                 indicator = ((*before_apple_y) < 0) ? -1 : 1;
-                if((collision_avec_lui_meme(les_x, les_y, les_x[0], les_y[0] + indicator)==false)&&(collision_avec_lui_meme(les_x, les_y, les_x[0], les_y[0] + indicator + indicator)==false))
+                if((collision_avec_lui_meme(les_x, les_y, les_x[0], les_y[0] + indicator)==false)
+					&&(collision_avec_lui_meme(les_x, les_y, les_x[0], les_y[0] + indicator + indicator)==false)
+					&&(collision_mur(les_x[0], les_y[0] + indicator) == true))
                 {
                     les_y[0] = les_y[0] + indicator;
 			        (*before_apple_y) = (*before_apple_y) - indicator;
@@ -371,7 +408,9 @@ void progresser(corp_longeur les_x, corp_longeur les_y, bool *collision_joueur, 
 		else
 		{   
 			indicator = ((*before_apple_y) < 0) ? -1 : 1;
-            if((collision_avec_lui_meme(les_x, les_y, les_x[0], les_y[0] + indicator)==false)&&(collision_avec_lui_meme(les_x, les_y, les_x[0], les_y[0] + indicator + indicator)==false))
+            if((collision_avec_lui_meme(les_x, les_y, les_x[0], les_y[0] + indicator)==false)
+				&&(collision_avec_lui_meme(les_x, les_y, les_x[0], les_y[0] + indicator + indicator)==false)
+				&&(collision_mur(les_x[0], les_y[0] + indicator) == true))
             {
                 les_y[0] = les_y[0] + indicator;
                 (*before_apple_y) = (*before_apple_y) - indicator;
@@ -380,7 +419,9 @@ void progresser(corp_longeur les_x, corp_longeur les_y, bool *collision_joueur, 
             else
             {
                 indicator = ((*before_apple_x) < 0) ? -1 : 1;
-                if ((collision_avec_lui_meme(les_x, les_y, les_x[0] + indicator, les_y[0])==false)&&(collision_avec_lui_meme(les_x, les_y, les_x[0] + indicator + indicator, les_y[0])==false))
+                if ((collision_avec_lui_meme(les_x, les_y, les_x[0] + indicator, les_y[0])==false)
+					&&(collision_avec_lui_meme(les_x, les_y, les_x[0] + indicator + indicator, les_y[0])==false)
+					&&(collision_mur(les_x[0], les_y[0] + indicator) == true))
                 {
                     les_x[0] = les_x[0] + indicator;
                     (*before_apple_x) = (*before_apple_x) - indicator;
@@ -389,33 +430,7 @@ void progresser(corp_longeur les_x, corp_longeur les_y, bool *collision_joueur, 
 		}
 	}
 }
-int dans_tableau(int eltx, int elty)
-{
-	/**
-	 * @brief va calculer si un éléments se trouve dans le tableau
-	 * @param eltx : position de l'élément en x
-	 * @param elty : position de l'élément en y
-	 * @return 1 si l'élément est dans le tableaun. 0 S'il se trouve en dehors
-	 */
-	int dedans = 1;
-	// Gestion des téléporteur au quatre coin du niveau
-	if (((eltx >= TAILLE_TABLEAU_X) && (elty == TAILLE_TABLEAU_Y / 2 + 1)) 
-		|| ((eltx <= 1) && (elty == TAILLE_TABLEAU_Y / 2 + 1)) 
-		|| ((elty >= TAILLE_TABLEAU_Y) && (eltx == TAILLE_TABLEAU_X / 2 + 1)) 
-		|| ((elty <= 1) && (eltx == TAILLE_TABLEAU_X / 2 + 1))
-	   )
-	{
-		dedans = 0;
-	}
-	else if ((eltx < TAILLE_TABLEAU_X	 // Si le joueur touche le mur droit
-			  && eltx >= 2)				 // Si le joueur touche le mur gauche
-			 && (elty < TAILLE_TABLEAU_Y // Si le joueur touche le mur bas
-				 && elty >= 2))			 // Si le joueur touche le mur haut
-	{
-		dedans = 0;
-	}
-	return dedans;
-}
+
 void dessiner_serpent(corp_longeur les_x, corp_longeur les_y)
 {
 	/**
@@ -432,6 +447,7 @@ void dessiner_serpent(corp_longeur les_x, corp_longeur les_y)
 	afficher(les_x[0], les_y[0], TETE_JOUEUR);
 	fflush(stdout);
 }
+
 void effacer(int x, int y)
 {
 	/**
@@ -442,6 +458,7 @@ void effacer(int x, int y)
 	afficher(x, y, CARACTERE_EFFACER);
 	fflush(stdout);
 }
+
 void effacer_serpent(corp_longeur les_x, corp_longeur les_y)
 {
 	/**
@@ -452,6 +469,7 @@ void effacer_serpent(corp_longeur les_x, corp_longeur les_y)
 	// Efface uniquement le dernier éléments du joueura
 	effacer(les_x[taille_joueur], les_y[taille_joueur]);
 }
+
 char lire_entrer()
 {
 	/**
@@ -467,6 +485,7 @@ char lire_entrer()
 	}
 	return lettre;
 }
+
 void creation_du_serpent(int x, int y, corp_longeur les_x, corp_longeur les_y)
 {
 	/**
@@ -484,6 +503,7 @@ void creation_du_serpent(int x, int y, corp_longeur les_x, corp_longeur les_y)
 		les_y[i] = y;
 	}
 }
+
 int collision_avec_pomme(int x_tete, int y_tete, int x_pomme, int y_pomme)
 {
 	/**
@@ -501,6 +521,7 @@ int collision_avec_pomme(int x_tete, int y_tete, int x_pomme, int y_pomme)
 	}
 	return collision;
 }
+
 /*		FONCTION DONNER PAR LES INSTRUCTIONS       */
 int kbhit()
 {
