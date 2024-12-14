@@ -160,7 +160,6 @@ int main()
 				collision_joueur = true;
 			}
 			else{
-				printf("OUI %d", nb);
 				precal_path(les_pommes_x, les_pommes_y, nb, les_x[0], les_y[0], &before_apple_x, &before_apple_y);
 				afficher(les_pommes_x[nb], les_pommes_y[nb], POMME);
 			}
@@ -375,60 +374,59 @@ void progresser(corp_longeur les_x, corp_longeur les_y, bool *collision_joueur, 
 	if (*collision_joueur == false)
 	{
 		int i = 0;
-		int indicator = 0;
+		int indicator_y = ((*before_apple_y) < 0) ? -1 : 1;
+		int indicator_x = ((*before_apple_x) < 0) ? -1 : 1;
+
 		les_x[taille_joueur + 1] = les_x[taille_joueur];
 		les_y[taille_joueur + 1] = les_y[taille_joueur];
+
 		for (i = taille_joueur; i >= 1; i--)
 		{
 			les_x[i] = les_x[i - 1];
 			les_y[i] = les_y[i - 1];
 		}
-		if (*before_apple_x != 0)
+	
+			
+		printf("%d     \n", *before_apple_x);
+		printf("%d       ", *before_apple_y);
+
+		if ((collision_mur(les_x[0], les_y[0] + indicator_y) == true)
+			&&(collision_avec_lui_meme(les_x, les_y, les_x[0], les_y[0] + indicator_y) == false)
+			&&(collision_avec_lui_meme(les_x, les_y, les_x[0], les_y[0] + indicator_y + indicator_y) == false)
+			&&(*before_apple_y != 0))
 		{
-			indicator = ((*before_apple_x) < 0) ? -1 : 1;
-            if ((collision_avec_lui_meme(les_x, les_y, les_x[0] + indicator, les_y[0])==false)
-				&&(collision_avec_lui_meme(les_x, les_y, les_x[0] + indicator + indicator, les_y[0])==false)
-				&&(collision_mur(les_x[0] + indicator, les_y[0]) == true))
-            {
-                les_x[0] = les_x[0] + indicator;
-			    (*before_apple_x) = (*before_apple_x) - indicator;
-            }
-            else
-            {   
-                indicator = ((*before_apple_y) < 0) ? -1 : 1;
-                if((collision_avec_lui_meme(les_x, les_y, les_x[0], les_y[0] + indicator)==false)
-					&&(collision_avec_lui_meme(les_x, les_y, les_x[0], les_y[0] + indicator + indicator)==false)
-					&&(collision_mur(les_x[0], les_y[0] + indicator) == true))
-                {
-                    les_y[0] = les_y[0] + indicator;
-			        (*before_apple_y) = (*before_apple_y) - indicator;
-                }
-            }
+			les_y[0] = les_y[0] + indicator_y;
+			(*before_apple_y) = (*before_apple_y) - indicator_y;
 		}
-		else
-		{   
-			indicator = ((*before_apple_y) < 0) ? -1 : 1;
-            if((collision_avec_lui_meme(les_x, les_y, les_x[0], les_y[0] + indicator)==false)
-				&&(collision_avec_lui_meme(les_x, les_y, les_x[0], les_y[0] + indicator + indicator)==false)
-				&&(collision_mur(les_x[0], les_y[0] + indicator) == true))
-            {
-                les_y[0] = les_y[0] + indicator;
-                (*before_apple_y) = (*before_apple_y) - indicator;
-            }
-            
-            else
-            {
-                indicator = ((*before_apple_x) < 0) ? -1 : 1;
-                if ((collision_avec_lui_meme(les_x, les_y, les_x[0] + indicator, les_y[0])==false)
-					&&(collision_avec_lui_meme(les_x, les_y, les_x[0] + indicator + indicator, les_y[0])==false)
-					&&(collision_mur(les_x[0], les_y[0] + indicator) == true))
-                {
-                    les_x[0] = les_x[0] + indicator;
-                    (*before_apple_x) = (*before_apple_x) - indicator;
-                }
-            }
+
+		else if ((collision_mur(les_x[0] + indicator_x, les_y[0]) == true)
+			&&(collision_avec_lui_meme(les_x, les_y, les_x[0] + indicator_x, les_y[0]) == false)
+			&&(collision_avec_lui_meme(les_x, les_y, les_x[0] + indicator_x + indicator_x, les_y[0]) == false))
+		{ 
+			les_x[0] = les_x[0] + indicator_x;
+			(*before_apple_x) = (*before_apple_x) - indicator_x;
 		}
-	}
+
+		else if ((collision_mur(les_x[0] - indicator_x, les_y[0]) == true)
+			&&(collision_avec_lui_meme(les_x, les_y, les_x[0] - indicator_x, les_y[0]) == false)
+			&&(collision_avec_lui_meme(les_x, les_y, les_x[0] - indicator_x - indicator_x, les_y[0]) == false))
+		{ 
+			les_x[0] = les_x[0] - indicator_x;
+			(*before_apple_x) = (*before_apple_x) + indicator_x;
+		}
+
+		else if ((collision_mur(les_x[0], les_y[0] - indicator_y) == true)
+			&&(collision_avec_lui_meme(les_x, les_y, les_x[0], les_y[0] - indicator_y) == false)
+			&&(collision_avec_lui_meme(les_x, les_y, les_x[0], les_y[0] - indicator_y - indicator_y) == false))
+		{
+			les_y[0] = les_y[0] - indicator_y;
+			(*before_apple_y) = (*before_apple_y) + indicator_y;
+		}
+
+			
+		
+        
+    }		
 }
 
 void dessiner_serpent(corp_longeur les_x, corp_longeur les_y)
