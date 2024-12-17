@@ -3,7 +3,7 @@
  * @brief Programme d'un jeu de snake autonome
  * @author Dhennin Elouan, Martin Esmeralda
  * @version 2
- * @date 14/12/24
+ * @date 16/12/24
  *
  *
  */
@@ -36,7 +36,7 @@ int taille_joueur = 10;
 #define CARACTERE_EFFACER ' ' // Pour effacer un élément
 #define MUR '#'
 #define POMME '6'
-#define VITESSE 60000 // micro_sec
+#define VITESSE 60000  // micro_sec
 #define FERMER_JEU 'a' // Condition d'arrêt
 
 /*Constantes des position des téléporteurs*/
@@ -67,15 +67,13 @@ void teleportation(int *tete_x, int *tete_y);
 void init_plateau(type_tableau_2d tableau);
 void creation_du_serpent(int x, int y, corp_longeur les_x, corp_longeur les_y);
 
-
 /*Procédures de calcule de direction pour le CPU*/
-void precal_path(t_pomme les_pommes_x, t_pomme les_pommes_y, int nb, int tete_x, int tete_y, int *before_x_apple, int *before_y_apple);
-void progresser(corp_longeur les_x, corp_longeur les_y, bool *collision_joueur, int *before_x_apple, int *before_y_apple);
-
+void precalcul_pomme(t_pomme les_pommes_x, t_pomme les_pommes_y, int nb, int tete_x, int tete_y, int *x_avant_pomme, int *y_avant_pomme);
+void progresser(corp_longeur les_x, corp_longeur les_y, bool *collision_joueur, int *x_avant_pomme, int *y_avant_pomme);
 
 /*Procédures/Fonctions de communication entre la machine et l'utilisateur*/
 char lire_entrer();
-int kbhit();// équivalent d'un INKEYS en BASIC
+int kbhit(); // équivalent d'un INKEYS en BASIC
 
 /*Procédures d'affichage*/
 void afficher(int x, int y, char c); // Affiche en lien avec goto_x_y un caractère à l'écran
@@ -96,9 +94,9 @@ int main()
 {
 	system("clear");
 	char lettre = CARACTERE_EFFACER; // Valeur du caractère espace
-	type_tableau_2d plateau; // Plateau de jeu
-	corp_longeur les_x;		 // Position du corps en X
-	corp_longeur les_y;		 // Position du corps en Y
+	type_tableau_2d plateau;		 // Plateau de jeu
+	corp_longeur les_x;				 // Position du corps en X
+	corp_longeur les_y;				 // Position du corps en Y
 	bool collision_joueur = false;
 
 	/*variable lié à la pomme*/
@@ -115,14 +113,14 @@ int main()
 	dessiner_plateau(plateau);
 	disable_echo();
 
-	int before_apple_x = 0;
-	int before_apple_y = 0;
+	int x_avant_pomme = 0;
+	int y_avant_pomme = 0;
 
 	// Va servir pour savoir si le joueur à été téléporter ou non
 	int tamp_x = les_x[0];
 	int tamp_y = les_y[0];
 
-	precal_path(les_pommes_x, les_pommes_y, nb, les_x[0], les_y[0], &before_apple_x, &before_apple_y);
+	precalcul_pomme(les_pommes_x, les_pommes_y, nb, les_x[0], les_y[0], &x_avant_pomme, &y_avant_pomme);
 	afficher(les_pommes_x[nb], les_pommes_y[nb], POMME);
 	clock_t begin = clock();
 
@@ -134,36 +132,36 @@ int main()
 			Cette condition est ici pour éviter d'effacer le bout du serpent
 			alors qu'il n'y a eu aucun déplacement à la fin du jeu.
 		*/
-		progresser(les_x, les_y, &collision_joueur, &before_apple_x, &before_apple_y);
+		progresser(les_x, les_y, &collision_joueur, &x_avant_pomme, &y_avant_pomme);
 
 		tamp_x = les_x[0];
 		tamp_y = les_y[0];
 
 		teleportation(&les_x[0], &les_y[0]);
 
-		//Si le joueur est téléporter, alors on recalcule la distance
-		if(tamp_x != les_x[0] || tamp_y != les_y[0]){
-			precal_path(les_pommes_x, les_pommes_y, nb, les_x[0], les_y[0], &before_apple_x, &before_apple_y);
+		// Si le joueur est téléporter, alors on recalcule la distance
+		if (tamp_x != les_x[0] || tamp_y != les_y[0])
+		{
+			precalcul_pomme(les_pommes_x, les_pommes_y, nb, les_x[0], les_y[0], &x_avant_pomme, &y_avant_pomme);
 		}
 
 		nbMouv++;
 		/*Collision et gestion du jeu avec la pomme*/
 		pomme_ramasser = collision_avec_pomme(les_x[0], les_y[0], les_pommes_x[nb], les_pommes_y[nb]);
 
-		
 		if (pomme_ramasser == true)
 		{
 			nb++;
-			
+
 			if (nb == NB_POMMES)
 			{
 				collision_joueur = true;
 			}
-			else{
-				precal_path(les_pommes_x, les_pommes_y, nb, les_x[0], les_y[0], &before_apple_x, &before_apple_y);
+			else
+			{
+				precalcul_pomme(les_pommes_x, les_pommes_y, nb, les_x[0], les_y[0], &x_avant_pomme, &y_avant_pomme);
 				afficher(les_pommes_x[nb], les_pommes_y[nb], POMME);
 			}
-			
 		}
 		// Si le joueur obtien la dernière pomme, on veux qu'ils l'efface
 		// Alors malgré le fait qu'il aie fini, on actualise ça position pour
@@ -193,43 +191,57 @@ int main()
 	return EXIT_SUCCESS;
 }
 
-void precal_path(t_pomme les_pommes_x, t_pomme les_pommes_y, int nb,  int tete_x, int tete_y, int *before_x_apple, int *before_y_apple)
+void precalcul_pomme(t_pomme les_pommes_x, t_pomme les_pommes_y, int nb, int tete_x, int tete_y, int *x_avant_pomme, int *y_avant_pomme)
 {
 
 	/*gestion des téléporteurs*/
+	*x_avant_pomme = les_pommes_x[nb] - tete_x;
+	*y_avant_pomme = les_pommes_y[nb] - tete_y;
 
 	/*Téléporteur gauche*/
-	if ((les_pommes_x[nb] - tete_x) > 40){
-	*before_x_apple = T_GAUCHE_X - tete_x;
-	*before_y_apple = T_GAUCHE_Y - tete_y;
-		
+	if (
+	   	  abs(T_GAUCHE_X - tete_x) + abs(les_pommes_x[nb] - T_DROITE_X) 
+		  + abs(T_GAUCHE_Y - tete_y) + abs(les_pommes_y[nb] - T_DROITE_Y) 
+		  < abs(*x_avant_pomme + *y_avant_pomme)
+	   )
+	{
+		*x_avant_pomme = T_GAUCHE_X - tete_x;
+		*y_avant_pomme = T_GAUCHE_Y - tete_y;
 	}
 
 	/*téléporteur droite*/
-	else if ((tete_x - les_pommes_x[nb]) > 40){
-		*before_x_apple = T_DROITE_X - tete_x;
-		*before_y_apple = T_DROITE_Y - tete_y;
-
+	else if (
+		abs(T_DROITE_X - tete_x) + abs(les_pommes_x[nb] - T_GAUCHE_X)
+		+ abs(T_DROITE_Y - tete_y) + abs(les_pommes_y[nb] - T_GAUCHE_Y)
+		< abs(*x_avant_pomme + *y_avant_pomme)
+	)
+	{
+		*x_avant_pomme = T_DROITE_X - tete_x;
+		*y_avant_pomme = T_DROITE_Y - tete_y;
 	}
 
 	/*Téléporteur haut*/
-	else if ((les_pommes_y[nb] - tete_y) > 20){
-		*before_x_apple = T_HAUT_X - tete_x;
-		*before_y_apple = T_HAUT_Y - tete_y;
-			
-		}
-	
-	/*téléporteur bas*/
-	else if ((tete_y - les_pommes_y[nb]) > 20){
-		*before_x_apple = T_BAS_X - tete_x;
-		*before_y_apple = T_BAS_Y - tete_y;
-	
+	else if (
+		abs(T_HAUT_X - tete_x) + abs(les_pommes_x[nb] - T_BAS_X)
+		+ abs(T_HAUT_Y - tete_y) + abs(les_pommes_y[nb] - T_BAS_Y)
+		< abs(*x_avant_pomme + *y_avant_pomme)
+	)
+	{
+		*x_avant_pomme = T_HAUT_X - tete_x;
+		*y_avant_pomme = T_HAUT_Y - tete_y;
 	}
 
-	else{
-		*before_x_apple = les_pommes_x[nb] - tete_x;
-		*before_y_apple = les_pommes_y[nb] - tete_y;
+	/*téléporteur bas*/
+	else if (
+		abs(T_BAS_X - tete_x) + abs(les_pommes_x[nb] - T_HAUT_X)
+		+ abs(T_BAS_Y - tete_y) + abs(les_pommes_y[nb] - T_BAS_Y)
+		< abs(*x_avant_pomme + *y_avant_pomme)
+	)
+	{
+		*x_avant_pomme = T_BAS_X - tete_x;
+		*y_avant_pomme = T_BAS_Y - tete_y;
 	}
+
 }
 int collision_avec_lui_meme(corp_longeur les_x, corp_longeur les_y, int tete_x, int tete_y)
 {
@@ -253,7 +265,8 @@ int collision_avec_lui_meme(corp_longeur les_x, corp_longeur les_y, int tete_x, 
 	return collision;
 }
 
-int collision_mur(int tete_x, int tete_y){
+int collision_mur(int tete_x, int tete_y)
+{
 	bool dedans = false;
 
 	// Gestion des téléporteur au quatre coin du niveau
@@ -265,17 +278,16 @@ int collision_mur(int tete_x, int tete_y){
 		dedans = 1;
 	}
 
- 	if ((tete_x < TAILLE_TABLEAU_X	 // Si le joueur touche le mur droit
-		&& tete_x >= 2)				 // Si le joueur touche le mur gauche
-	   	&& (tete_y < TAILLE_TABLEAU_Y // Si le joueur touche le mur bas
-		&& tete_y >= 2))			 // Si le joueur touche le mur haut
+	if ((tete_x < TAILLE_TABLEAU_X	  // Si le joueur touche le mur droit
+		 && tete_x >= 2)			  // Si le joueur touche le mur gauche
+		&& (tete_y < TAILLE_TABLEAU_Y // Si le joueur touche le mur bas
+			&& tete_y >= 2))		  // Si le joueur touche le mur haut
 	{
-  		dedans = true;
+		dedans = true;
 	}
 
 	return dedans;
 }
-
 
 void afficher(int x, int y, char c)
 {
@@ -346,88 +358,119 @@ void teleportation(int *tete_x, int *tete_y)
 	 * @param *tete_y tête du joueur en y en sortie
 	 */
 
-	if (*tete_x > TAILLE_TABLEAU_X && *tete_y == TAILLE_TABLEAU_Y / 2 + 1){
+	if (*tete_x > TAILLE_TABLEAU_X && *tete_y == TAILLE_TABLEAU_Y / 2 + 1)
+	{
 		*tete_x = 1; // Téléporteur à droite du monde
 	}
-	else if (*tete_x < 1 && *tete_y == TAILLE_TABLEAU_Y / 2 + 1){
+	else if (*tete_x < 1 && *tete_y == TAILLE_TABLEAU_Y / 2 + 1)
+	{
 		*tete_x = TAILLE_TABLEAU_X; // Téléporteur à gauche du monde
 	}
 
-	else if ((*tete_y > TAILLE_TABLEAU_Y) && (*tete_y == TAILLE_TABLEAU_X / 2 + 1)){
+	else if ((*tete_y > TAILLE_TABLEAU_Y) && (*tete_y == TAILLE_TABLEAU_X / 2 + 1))
+	{
 		*tete_y = 1; // Téléporteur en bas du monde
 	}
 
-	else if ((*tete_y < 1) && (*tete_x == TAILLE_TABLEAU_X / 2 + 1)){
+	else if ((*tete_y < 1) && (*tete_x == TAILLE_TABLEAU_X / 2 + 1))
+	{
 		*tete_y = TAILLE_TABLEAU_Y; // Téléporteur en haut du monde
 	}
-
 }
-void progresser(corp_longeur les_x, corp_longeur les_y, bool *collision_joueur, int *before_apple_x, int *before_apple_y)
+
+void progresser(corp_longeur les_x, corp_longeur les_y, bool *collision_joueur, int *x_avant_pomme, int *y_avant_pomme)
 {
-	/**
-	 * @brief Calcule la nouvelle position du serpent quand il avance sans intervention du joueur
-	 * @param les_x liste des valeurs en x
-	 * @param les_y liste des valeurs en y
-	 * @param *collision_joueur vérifie s'il y a une collision 0 si non, 1 si oui
-	 */
+    /**
+     * @brief Calcule la nouvelle position du serpent quand il avance sans intervention du joueur
+     * @param les_x Liste des positions en X des segments du serpent
+     * @param les_y Liste des positions en Y des segments du serpent
+     * @param *collision_joueur Pointeur vers une variable qui indique si le joueur est en collision (true si oui, false sinon)
+     * @param *x_avant_pomme Distance restante en X entre la tête du serpent et la pomme
+     * @param *y_avant_pomme Distance restante en Y entre la tête du serpent et la pomme
+     */
 
-	if (*collision_joueur == false)
-	{
-		int i = 0;
-		int indicator_y = ((*before_apple_y) < 0) ? -1 : 1;
-		int indicator_x = ((*before_apple_x) < 0) ? -1 : 1;
+    // Vérifie s'il n'y a pas de collision avec le joueur (le serpent peut progresser)
+    if (*collision_joueur == false)
+    {
+        int i = 0;
 
-		les_x[taille_joueur + 1] = les_x[taille_joueur];
-		les_y[taille_joueur + 1] = les_y[taille_joueur];
+        // Détermine la direction du mouvement selon la position relative de la pomme
+		// Cela grâce à une double opération ternaire
+        // - indicateur_y = -1 (vers le haut), 1 (vers le bas), 0 (aucun mouvement vertical)
+        // - indicateur_x = -1 (vers la gauche), 1 (vers la droite), 0 (aucun mouvement horizontal)
+        int indicateur_y = ((*y_avant_pomme) == 0) ? 0 : (*y_avant_pomme < 0) ? -1 : 1;
+        int indicateur_x = ((*x_avant_pomme) == 0) ? 0 : (*x_avant_pomme < 0) ? -1 : 1;
 
-		for (i = taille_joueur; i >= 1; i--)
-		{
-			les_x[i] = les_x[i - 1];
-			les_y[i] = les_y[i - 1];
-		}
-	
-			
-		printf("%d     \n", *before_apple_x);
-		printf("%d       ", *before_apple_y);
+        // Décale chaque segment du serpent pour suivre le mouvement de la tête.
+        for (i = taille_joueur; i >= 1; i--)
+        {
+            les_x[i] = les_x[i - 1];
+            les_y[i] = les_y[i - 1];
+        }
 
-		if ((collision_mur(les_x[0], les_y[0] + indicator_y) == true)
-			&&(collision_avec_lui_meme(les_x, les_y, les_x[0], les_y[0] + indicator_y) == false)
-			&&(collision_avec_lui_meme(les_x, les_y, les_x[0], les_y[0] + indicator_y + indicator_y) == false)
-			&&(*before_apple_y != 0))
-		{
-			les_y[0] = les_y[0] + indicator_y;
-			(*before_apple_y) = (*before_apple_y) - indicator_y;
-		}
+        /* Déplacement sur l'axe Y (haut/bas) */
 
-		else if ((collision_mur(les_x[0] + indicator_x, les_y[0]) == true)
-			&&(collision_avec_lui_meme(les_x, les_y, les_x[0] + indicator_x, les_y[0]) == false)
-			&&(collision_avec_lui_meme(les_x, les_y, les_x[0] + indicator_x + indicator_x, les_y[0]) == false))
-		{ 
-			les_x[0] = les_x[0] + indicator_x;
-			(*before_apple_x) = (*before_apple_x) - indicator_x;
-		}
+        // Vérifie si le mouvement vertical est possible :
+        // 1. La tête ne touche pas un mur
+        // 2. La prochaine case ne contient pas le serpent lui-même
+        // 3. La case après la prochaine (prévision) ne contient pas le serpent
+        if ((collision_mur(les_x[0], les_y[0] + indicateur_y) == true)
+            && (collision_avec_lui_meme(les_x, les_y, les_x[0], les_y[0] + indicateur_y) == false)
+            && (collision_avec_lui_meme(les_x, les_y, les_x[0], les_y[0] + indicateur_y + indicateur_y) == false))
+        {
+            // Déplace la tête du serpent sur l'axe Y
+            les_y[0] = les_y[0] + indicateur_y;
+            (*y_avant_pomme) = (*y_avant_pomme) - indicateur_y; // Met à jour la distance sur Y avant la pomme
+        }
+        else
+        {
+            /* Déplacement sur l'axe X (gauche/droite) */
 
-		else if ((collision_mur(les_x[0] - indicator_x, les_y[0]) == true)
-			&&(collision_avec_lui_meme(les_x, les_y, les_x[0] - indicator_x, les_y[0]) == false)
-			&&(collision_avec_lui_meme(les_x, les_y, les_x[0] - indicator_x - indicator_x, les_y[0]) == false))
-		{ 
-			les_x[0] = les_x[0] - indicator_x;
-			(*before_apple_x) = (*before_apple_x) + indicator_x;
-		}
+            // Vérifie si le mouvement horizontal est possible :
+            // Même principe que plus tôt mais sur l'axe X
+            if (collision_mur(les_x[0] + indicateur_x, les_y[0]) == true
+                && (collision_avec_lui_meme(les_x, les_y, les_x[0] + indicateur_x, les_y[0]) == false)
+                && (collision_avec_lui_meme(les_x, les_y, les_x[0] + indicateur_x + indicateur_x, les_y[0]) == false))
+            {
+                // Déplace la tête du serpent sur l'axe X
+                les_x[0] = les_x[0] + indicateur_x;
+                (*x_avant_pomme) = (*x_avant_pomme) - indicateur_x; // Met à jour la distance sur X avant la pomme
+            }
+            else
+            {
+                /* Si le serpent ne peut pas avancer dans la direction initiale, on cherche une alternative */
 
-		else if ((collision_mur(les_x[0], les_y[0] - indicator_y) == true)
-			&&(collision_avec_lui_meme(les_x, les_y, les_x[0], les_y[0] - indicator_y) == false)
-			&&(collision_avec_lui_meme(les_x, les_y, les_x[0], les_y[0] - indicator_y - indicator_y) == false))
-		{
-			les_y[0] = les_y[0] - indicator_y;
-			(*before_apple_y) = (*before_apple_y) + indicator_y;
-		}
+                // Si l'indicateur de mouvement vertical est nul (aucun mouvement Y prévu)
+                if (indicateur_y == 0)
+                {
+                    // Sinon, change de direction verticalement (haus ou bas) selon les collisions
+					// (L'on change la priorité à la collision plutôt qu'à la distance)
+                    indicateur_y = (collision_avec_lui_meme(les_x, les_y, les_x[0], les_y[0] + 1) == false) ? 1 : -1;
 
-			
-		
-        
-    }		
+                    // Vérifie si le nouveau mouvement vertical est possible.
+                    if ((collision_mur(les_x[0], les_y[0] + indicateur_y) == true))
+                    {
+                        les_y[0] = les_y[0] + indicateur_y;
+                        (*y_avant_pomme) = (*y_avant_pomme) - indicateur_y;
+                    }
+                }
+                else
+                {
+                    // Même principe que plus tôt mais sur (gauche ou droite)
+                    indicateur_x = (collision_avec_lui_meme(les_x, les_y, les_x[0] + 1, les_y[0]) == false) ? 1 : -1;
+
+                    // Vérifie si le nouveau mouvement horizontal est possible.
+                    if ((collision_mur(les_x[0] + indicateur_x, les_y[0]) == true))
+                    {
+                        les_x[0] = les_x[0] + indicateur_x;
+                        (*x_avant_pomme) = (*x_avant_pomme) - indicateur_x;
+                    }
+                }
+            }
+        }
+    }
 }
+
 
 void dessiner_serpent(corp_longeur les_x, corp_longeur les_y)
 {
