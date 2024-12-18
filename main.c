@@ -36,7 +36,7 @@ int taille_joueur = 10;
 #define CARACTERE_EFFACER ' ' // Pour effacer un élément
 #define MUR '#'
 #define POMME '6'
-#define VITESSE 60000  // micro_sec
+#define VITESSE 20000  // micro_sec
 #define FERMER_JEU 'a' // Condition d'arrêt
 
 /*Constantes des position des téléporteurs*/
@@ -145,7 +145,6 @@ int main()
 			precalcul_pomme(les_pommes_x, les_pommes_y, nb, les_x[0], les_y[0], &x_avant_pomme, &y_avant_pomme);
 		}
 
-		nbMouv++;
 		/*Collision et gestion du jeu avec la pomme*/
 		pomme_ramasser = collision_avec_pomme(les_x[0], les_y[0], les_pommes_x[nb], les_pommes_y[nb]);
 
@@ -171,6 +170,7 @@ int main()
 			effacer_serpent(les_x, les_y);
 			dessiner_serpent(les_x, les_y);
 			usleep(VITESSE);
+			nbMouv++;
 		}
 		/*
 		Le temps de jeu étant dérisoire, nous prenons en compte uniquement le temps
@@ -185,7 +185,7 @@ int main()
 	enable_echo();
 	goto_x_y(1, CACHER_CURSEUR);
 
-	printf("Temps CPU : %f\n", tmpsCPU);
+	printf("Temps CPU : %.4f secondes\n", tmpsCPU);
 	printf("Nombre de mouvements : %d\n", nbMouv);
 
 	return EXIT_SUCCESS;
@@ -194,9 +194,15 @@ int main()
 void precalcul_pomme(t_pomme les_pommes_x, t_pomme les_pommes_y, int nb, int tete_x, int tete_y, int *x_avant_pomme, int *y_avant_pomme)
 {
 
+	/*
+		Cumul la distance joueur -> portail_x et portail_opposé_x -> pomme
+		Pour savoir si un téléporteur est intéressant.
+		Si la distance pomme/tete est inférieur, alors les valeurs ne changent pas
+	*/
+
 	/*gestion des téléporteurs*/
-	*x_avant_pomme = les_pommes_x[nb] - tete_x;
-	*y_avant_pomme = les_pommes_y[nb] - tete_y;
+	*x_avant_pomme = les_pommes_x[nb] - tete_x; // Chemin sur les X de base
+	*y_avant_pomme = les_pommes_y[nb] - tete_y; // Chemin sur les Y de base
 
 	/*Téléporteur gauche*/
 	if (
@@ -205,6 +211,7 @@ void precalcul_pomme(t_pomme les_pommes_x, t_pomme les_pommes_y, int nb, int tet
 		  < abs(*x_avant_pomme + *y_avant_pomme)
 	   )
 	{
+		// Assignation du nouveau chemin
 		*x_avant_pomme = T_GAUCHE_X - tete_x;
 		*y_avant_pomme = T_GAUCHE_Y - tete_y;
 	}
