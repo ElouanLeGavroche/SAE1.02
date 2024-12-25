@@ -31,12 +31,19 @@ int taille_joueur = 10;
 #define CACHER_CURSEUR 42 // Valeur absurde pour être sur d'être coller en bas de la console
 #define TAILLE_TABLEAU_Y 40
 #define TAILLE_TABLEAU_X 80
+#define NB_PAVES 5
+
+/*Constantes des pavées*/
+#define ZONE_DE_PROTECTION_X 15
+#define ZONE_DE_PROTECTION_Y 5
+#define TAILLE_PAVE 5
+#define NOMBRE_PAVE 4
 
 /*Constantes des éléments graphique hors joueur*/
 #define CARACTERE_EFFACER ' ' // Pour effacer un élément
 #define MUR '#'
 #define POMME '6'
-#define VITESSE 20000  // micro_sec
+#define VITESSE 90000  // micro_sec
 #define FERMER_JEU 'a' // Condition d'arrêt
 
 /*Constantes des position des téléporteurs*/
@@ -61,6 +68,11 @@ typedef int t_pomme[NB_POMMES];
 
 // Définir le type du tableau à deux dimensions
 typedef char type_tableau_2d[TAILLE_TABLEAU_Y][TAILLE_TABLEAU_X];
+typedef int conteneur[NOMBRE_PAVE][TAILLE_PAVE][TAILLE_PAVE];
+
+
+// Définir le type du tableau à deux dimensions
+typedef char type_tableau_2d[TAILLE_TABLEAU_Y][TAILLE_TABLEAU_X];
 
 /* Initialisations des fonctions et des procédures */
 void teleportation(int *tete_x, int *tete_y);
@@ -69,7 +81,7 @@ void creation_du_serpent(int x, int y, corp_longeur les_x, corp_longeur les_y);
 
 /*Procédures de calcule de direction pour le CPU*/
 void precalcul_pomme(t_pomme les_pommes_x, t_pomme les_pommes_y, int nb, int tete_x, int tete_y, int *x_avant_pomme, int *y_avant_pomme);
-void progresser(corp_longeur les_x, corp_longeur les_y, bool *collision_joueur, int *x_avant_pomme, int *y_avant_pomme);
+void progresser(corp_longeur les_x, corp_longeur les_y, bool *collision_joueur, int *x_avant_pomme, int *y_avant_pomme, conteneur block_x, conteneur block_y);
 
 /*Procédures/Fonctions de communication entre la machine et l'utilisateur*/
 char lire_entrer();
@@ -90,6 +102,11 @@ int collision_mur(int tete_x, int tete_y);
 int collision_avec_pomme(int x_tete, int y_tete, int x_pomme, int y_pomme);
 int collision_avec_lui_meme(corp_longeur les_x, corp_longeur les_y, int tete_x, int tete_y);
 
+/*Fonction pour les pavées*/
+void deposer_pave(conteneur pos_des_paves_x, conteneur pos_des_paves_y);
+int confirmer_position(int indice, corp_longeur liste, int nouvelle_position);
+int collision_pave(conteneur block_x, conteneur block_y, int tete_x, int tete_y);
+
 int main()
 {
 	system("clear");
@@ -107,10 +124,19 @@ int main()
 	int nbMouv = 0;
 	bool pomme_ramasser;
 
+	/*variable lié aux pavées*/
+	int lesPavesX[NB_PAVES] = { 3, 74, 3, 74, 38, 38};
+	int lesPavesY[NB_PAVES] = { 3, 3, 34, 34, 21, 15};
+
+	conteneur pos_des_paves_x;
+	conteneur pos_des_paves_y;
+
 	// apparaître à 20 sur le tableau et non sur la console (20 + décalage du tableau dans la console)
 	creation_du_serpent(POS_INITIAL_JOUEUR_X + 1, POS_INITIAL_JOUEUR_Y + 1, les_x, les_y);
 	init_plateau(plateau);
 	dessiner_plateau(plateau);
+	deposer_pave(pos_des_paves_x, pos_des_paves_y);
+
 	disable_echo();
 
 	int x_avant_pomme = 0;
@@ -132,7 +158,7 @@ int main()
 			Cette condition est ici pour éviter d'effacer le bout du serpent
 			alors qu'il n'y a eu aucun déplacement à la fin du jeu.
 		*/
-		progresser(les_x, les_y, &collision_joueur, &x_avant_pomme, &y_avant_pomme);
+		progresser(les_x, les_y, &collision_joueur, &x_avant_pomme, &y_avant_pomme, pos_des_paves_x, pos_des_paves_y);
 
 		tamp_x = les_x[0];
 		tamp_y = les_y[0];
@@ -385,7 +411,7 @@ void teleportation(int *tete_x, int *tete_y)
 	}
 }
 
-void progresser(corp_longeur les_x, corp_longeur les_y, bool *collision_joueur, int *x_avant_pomme, int *y_avant_pomme)
+void progresser(corp_longeur les_x, corp_longeur les_y, bool *collision_joueur, int *x_avant_pomme, int *y_avant_pomme, conteneur block_x, conteneur block_y)
 {
     /**
      * @brief Calcule la nouvelle position du serpent quand il avance sans intervention du joueur
@@ -423,7 +449,8 @@ void progresser(corp_longeur les_x, corp_longeur les_y, bool *collision_joueur, 
         // 3. La case après la prochaine (prévision) ne contient pas le serpent
         if ((collision_mur(les_x[0], les_y[0] + indicateur_y) == true)
             && (collision_avec_lui_meme(les_x, les_y, les_x[0], les_y[0] + indicateur_y) == false)
-            && (collision_avec_lui_meme(les_x, les_y, les_x[0], les_y[0] + indicateur_y + indicateur_y) == false))
+            && (collision_avec_lui_meme(les_x, les_y, les_x[0], les_y[0] + indicateur_y + indicateur_y) == false)
+			&& (collision_pave(block_x, block_y, les_x[0], les_y[0] + indicateur_y) == false))
         {
             // Déplace la tête du serpent sur l'axe Y
             les_y[0] = les_y[0] + indicateur_y;
@@ -437,7 +464,9 @@ void progresser(corp_longeur les_x, corp_longeur les_y, bool *collision_joueur, 
             // Même principe que plus tôt mais sur l'axe X
             if (collision_mur(les_x[0] + indicateur_x, les_y[0]) == true
                 && (collision_avec_lui_meme(les_x, les_y, les_x[0] + indicateur_x, les_y[0]) == false)
-                && (collision_avec_lui_meme(les_x, les_y, les_x[0] + indicateur_x + indicateur_x, les_y[0]) == false))
+                && (collision_avec_lui_meme(les_x, les_y, les_x[0] + indicateur_x + indicateur_x, les_y[0]) == false)
+				&& (collision_pave(block_x, block_y, les_x[0] + indicateur_x, les_y[0]) == false))
+			
             {
                 // Déplace la tête du serpent sur l'axe X
                 les_x[0] = les_x[0] + indicateur_x;
@@ -455,7 +484,10 @@ void progresser(corp_longeur les_x, corp_longeur les_y, bool *collision_joueur, 
                     indicateur_y = (collision_avec_lui_meme(les_x, les_y, les_x[0], les_y[0] + 1) == false) ? 1 : -1;
 
                     // Vérifie si le nouveau mouvement vertical est possible.
-                    if ((collision_mur(les_x[0], les_y[0] + indicateur_y) == true))
+                    if ((collision_mur(les_x[0], les_y[0] + indicateur_y) == true)
+					   && (collision_avec_lui_meme(les_x, les_y, les_x[0], les_y[0] + indicateur_y) == false)
+            		   && (collision_avec_lui_meme(les_x, les_y, les_x[0], les_y[0] + indicateur_y + indicateur_y) == false)
+					   && (collision_pave(block_x, block_y, les_x[0], les_y[0] + indicateur_y) ==  false))
                     {
                         les_y[0] = les_y[0] + indicateur_y;
                         (*y_avant_pomme) = (*y_avant_pomme) - indicateur_y;
@@ -467,7 +499,11 @@ void progresser(corp_longeur les_x, corp_longeur les_y, bool *collision_joueur, 
                     indicateur_x = (collision_avec_lui_meme(les_x, les_y, les_x[0] + 1, les_y[0]) == false) ? 1 : -1;
 
                     // Vérifie si le nouveau mouvement horizontal est possible.
-                    if ((collision_mur(les_x[0] + indicateur_x, les_y[0]) == true))
+                    if ((collision_mur(les_x[0] + indicateur_x, les_y[0]) == true)
+					   && (collision_avec_lui_meme(les_x, les_y, les_x[0] + indicateur_x, les_y[0]) == false)
+                	   && (collision_avec_lui_meme(les_x, les_y, les_x[0] + indicateur_x + indicateur_x, les_y[0]) == false)
+					   && (collision_pave(block_x, block_y, les_x[0] + indicateur_x, les_y[0]) ==  false))
+
                     {
                         les_x[0] = les_x[0] + indicateur_x;
                         (*x_avant_pomme) = (*x_avant_pomme) - indicateur_x;
@@ -478,6 +514,119 @@ void progresser(corp_longeur les_x, corp_longeur les_y, bool *collision_joueur, 
     }
 }
 
+
+void deposer_pave(conteneur position_x, conteneur position_y)
+{
+	/**
+	 * @brief dépose les pavés dans le monde
+	 * @param position_x position des x des différent pavés
+	 * @param position_y position des y des différent pavés
+	 */
+	int pos_x, pos_y, i, y, z, tampon;
+
+	// Ce sont les variable requis pour connaitre où en est la boucle dans le positionnement
+	// Des pavés. Et d'y inscrire les position interdite par ceux-ci
+	int indice = 0;
+	corp_longeur position_interdite_x = {}; // Initialiser toutes les valeurs du tableau à 0
+	corp_longeur position_interdite_y = {};
+
+	srand(time(NULL)); // Rendre l'aléatoire plus aléatoire
+
+	for (z = 0; z < NOMBRE_PAVE; z++)
+	{
+
+		// Génération aléatoire en x et en y des pavé, en evitant qu'ils apparraissent sur le joueur
+		// En créant une protection de 10 block autour de la tête (devant, derrière, haut et en bas)
+		do
+		{
+			pos_x = rand() % (TAILLE_TABLEAU_X - TAILLE_PAVE - 3) + 3;
+			tampon = pos_x;
+			pos_y = rand() % (TAILLE_TABLEAU_Y - TAILLE_PAVE - 3) + 3;
+
+		} while (
+
+			// Vérification du positionnement dans le tableau
+			(pos_x >= POS_INITIAL_JOUEUR_X - ZONE_DE_PROTECTION_X && pos_x <= POS_INITIAL_JOUEUR_X + ZONE_DE_PROTECTION_X &&
+			 pos_y >= POS_INITIAL_JOUEUR_Y - ZONE_DE_PROTECTION_Y && pos_y <= POS_INITIAL_JOUEUR_Y + ZONE_DE_PROTECTION_Y)
+
+			// Vérification du positionnement les uns sur les autres
+			|| (confirmer_position(indice, position_interdite_x, pos_x) == 1 && confirmer_position(indice, position_interdite_y, pos_y) == 1));
+
+		position_interdite_x[indice] = pos_x;
+		position_interdite_y[indice] = pos_y;
+		indice++;
+
+		for (i = 0; i < TAILLE_PAVE; i++)
+		{
+			for (y = 0; y < TAILLE_PAVE; y++)
+			{
+
+				afficher(pos_x, pos_y, MUR);
+				position_x[z][i][y] = pos_x;
+				position_y[z][i][y] = pos_y;
+
+				pos_x++;
+			}
+			pos_x = tampon;
+			pos_y++;
+		}
+	}
+	fflush(stdout);
+}
+
+int confirmer_position(int indice, corp_longeur liste, int nouvelle_position)
+{
+	/**
+	 * @brief permet de savoir si la position voulu par le pavé, n'as pas déjà été prise par un autre block
+	 * @param indice est le n eme pavé poser
+	 * @param liste liste des position déjà utilisé par les pavé précédent
+	 * @param nouvelle_position la nouvelle position choisit par le pavé
+	 * @return 0 si la position est bonne, 1 si elle est déjà utiliser par un autre pavé
+	 */
+	int i;
+	int identique = 0;
+
+	for (i = 0; i < indice; i++)
+	{
+		if (liste[i] == nouvelle_position)
+		{
+			identique = 1;
+		}
+	}
+	return identique;
+}
+
+int collision_pave(conteneur block_x, conteneur block_y, int tete_x, int tete_y)
+{
+	/**
+	 * @brief regarde s'il y a collision avec les différent pavé du jeu
+	 * @param block_x liste à 3 dimensions des x des pavés
+	 * @param block_y liste à 3 dimensions des y des pavés
+	 * @param tete_x position de la tête en x
+	 * @param tete_x position de la tête en y
+	 */
+
+	int i, y, z;
+	bool collision = 0;
+
+	for (z = 0; z <= NOMBRE_PAVE; z++)
+	{
+		for (i = 0; i <= TAILLE_PAVE; i++)
+		{
+			for (y = 0; y <= TAILLE_PAVE; y++)
+
+			{
+
+				if (block_x[z][i][y] == tete_x && tete_y == block_y[z][i][y])
+				{
+					collision = 1;
+				}
+			}
+		}
+	}
+
+	return collision;
+}
 
 void dessiner_serpent(corp_longeur les_x, corp_longeur les_y)
 {
