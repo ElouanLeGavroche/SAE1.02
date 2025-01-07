@@ -2,6 +2,7 @@
  * @file main.c
  * @brief Programme d'un jeu de snake autonome
  * @author Dhennin Elouan, Martin Esmeralda
+<<<<<<< HEAD
  * @version 1
  * @date 10/12/24
  *
@@ -71,10 +72,26 @@ void disable_echo();
 void dessiner_plateau(type_tableau_2d plateau);
 
 char lire_entrer();
+=======
+ * @version 2
+ * @date 16/12/24
+ *
+ *
+ */
+#include <stdbool.h>
+#include <string.h>
+#include <time.h>
+#include <stdio.h>
+#include <unistd.h>
+
+
+#include "src/fonction_tete.h"
+>>>>>>> main
 
 int main()
 {
 	system("clear");
+<<<<<<< HEAD
 
 	char lettre = CARACTERE_EFFACER; // Valeur du caractère espace
 
@@ -109,11 +126,54 @@ int main()
 	{
 
 		// Lire les entrer au clavier
+=======
+	char lettre = CARACTERE_EFFACER; // Valeur du caractère espace
+	type_tableau_2d plateau;		 // Plateau de jeu
+	corp_longeur les_x;				 // Position du corps en X
+	corp_longeur les_y;				 // Position du corps en Y
+	bool collision_joueur = false;
+
+	/*variable lié à la pomme*/
+	t_pomme les_pommes_x = {75, 75, 78, 2, 8, 78, 74, 2, 72, 5};
+	t_pomme les_pommes_y = {8, 39, 2, 2, 5, 39, 33, 38, 35, 2};
+
+	int nb = 0;
+	int nbMouv = 0;
+	bool pomme_ramasser;
+
+	conteneur pos_des_paves_x;
+	conteneur pos_des_paves_y;
+
+	// apparaître à 20 sur le tableau et non sur la console (20 + décalage du tableau dans la console)
+	creation_du_serpent(POS_INITIAL_JOUEUR_X + 1, POS_INITIAL_JOUEUR_Y + 1, les_x, les_y);
+	init_plateau(plateau);
+	dessiner_plateau(plateau);
+	//deposer_pave(pos_des_paves_x, pos_des_paves_y);
+
+	disable_echo();
+
+	int x_avant_pomme = 0;
+	int y_avant_pomme = 0;
+
+	// Va servir pour savoir si le joueur à été téléporter ou non
+	int tamp_x = les_x[0];
+	int tamp_y = les_y[0];
+
+	precalcul_pomme(les_pommes_x, les_pommes_y, nb, les_x[0], les_y[0], &x_avant_pomme, &y_avant_pomme);
+	afficher(les_pommes_x[nb], les_pommes_y[nb], POMME);
+	clock_t begin = clock();
+
+	do
+	{
+		// Lire les entrer au clavier
+		nbMouv++;
+>>>>>>> main
 		lettre = lire_entrer();
 		/*
 			Cette condition est ici pour éviter d'effacer le bout du serpent
 			alors qu'il n'y a eu aucun déplacement à la fin du jeu.
 		*/
+<<<<<<< HEAD
 
 		progresser(les_x, les_y, &collision_joueur, pomme_x, pomme_y);
 		nbMouv++;
@@ -137,6 +197,38 @@ int main()
 			}
 		}
 
+=======
+		progresser(les_x, les_y, &collision_joueur, &x_avant_pomme, &y_avant_pomme, pos_des_paves_x, pos_des_paves_y);
+
+		tamp_x = les_x[0];
+		tamp_y = les_y[0];
+
+		teleportation(&les_x[0], &les_y[0]);
+
+		// Si le joueur est téléporter, alors on recalcule la distance
+		if (tamp_x != les_x[0] || tamp_y != les_y[0])
+		{
+			precalcul_pomme(les_pommes_x, les_pommes_y, nb, les_x[0], les_y[0], &x_avant_pomme, &y_avant_pomme);
+		}
+
+		/*Collision et gestion du jeu avec la pomme*/
+		pomme_ramasser = collision_avec_pomme(les_x[0], les_y[0], les_pommes_x[nb], les_pommes_y[nb]);
+
+		if (pomme_ramasser == true)
+		{
+			nb++;
+
+			if (nb == NB_POMMES)
+			{
+				collision_joueur = true;
+			}
+			else
+			{
+				precalcul_pomme(les_pommes_x, les_pommes_y, nb, les_x[0], les_y[0], &x_avant_pomme, &y_avant_pomme);
+				afficher(les_pommes_x[nb], les_pommes_y[nb], POMME);
+			}
+		}
+>>>>>>> main
 		// Si le joueur obtien la dernière pomme, on veux qu'ils l'efface
 		// Alors malgré le fait qu'il aie fini, on actualise ça position pour
 		// Montrer la pomme manger
@@ -146,24 +238,39 @@ int main()
 			dessiner_serpent(les_x, les_y);
 			usleep(VITESSE);
 		}
+<<<<<<< HEAD
 
+=======
+>>>>>>> main
 		/*
 		Le temps de jeu étant dérisoire, nous prenons en compte uniquement le temps
 		D'attente entre deux image. Qui est finalement la majorité du temps de jeu
 		du joueur. Attendre...
 		*/
 	} while ((lettre != FERMER_JEU) && nb != NB_POMMES);
+<<<<<<< HEAD
 	clock_t end = clock();
 	double tmpsCPU = ((end - begin) * 1.0) / CLOCKS_PER_SEC;
 	enable_echo();
 
 	goto_x_y(1, CACHER_CURSEUR);
 	printf("Temps CPU : %f\n", tmpsCPU);
+=======
+
+	clock_t end = clock();
+	double tmpsCPU = ((end - begin) * 1.0) / CLOCKS_PER_SEC;
+
+	enable_echo();
+	goto_x_y(1, CACHER_CURSEUR);
+
+	printf("Temps CPU : %.4f secondes\n", tmpsCPU);
+>>>>>>> main
 	printf("Nombre de mouvements : %d\n", nbMouv);
 
 	return EXIT_SUCCESS;
 }
 
+<<<<<<< HEAD
 void afficher(int x, int y, char c)
 {
 	/**
@@ -363,13 +470,18 @@ void effacer_serpent(corp_longeur les_x, corp_longeur les_y)
 	effacer(les_x[taille_joueur], les_y[taille_joueur]);
 }
 
+=======
+>>>>>>> main
 char lire_entrer()
 {
 	/**
 	 * @brief va lire les entrer de l'utilisateur
 	 * @return retourne la lettre qui a été entrer par l'utilisateur
 	 */
+<<<<<<< HEAD
 
+=======
+>>>>>>> main
 	int entrer;
 	char lettre = CARACTERE_EFFACER;
 	entrer = kbhit();
@@ -380,6 +492,7 @@ char lire_entrer()
 	return lettre;
 }
 
+<<<<<<< HEAD
 void creation_du_serpent(int x, int y, corp_longeur les_x, corp_longeur les_y)
 {
 	/**
@@ -506,3 +619,5 @@ void enable_echo()
 		exit(EXIT_FAILURE);
 	}
 }
+=======
+>>>>>>> main
