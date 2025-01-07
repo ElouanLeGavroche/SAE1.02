@@ -16,63 +16,11 @@
 #include <stdbool.h>
 #include <string.h>
 
-// CONSTANTE DU JEU
-/*Constante du joueur*/
-#define TETE_JOUEUR 'O' // Tête du joueur
-#define CORP_JOUEUR 'X' // Corp du joueur
-#define POS_INITIAL_JOUEUR_X 40
-#define POS_INITIAL_JOUEUR_Y 20
-#define LONGEUR_MAX 20
-#define TAILLE_INITIAL_DU_JOUEUR 10 // Taille de base du joueur (en réalité 10, car la boucle for commence à 0)
+#include "const.h"
+#include "types.h"
 int taille_joueur = 10;
 
-/*Les constantes du jeu*/
-#define NB_POMMES 10
-#define CACHER_CURSEUR 42 // Valeur absurde pour être sur d'être coller en bas de la console
-#define TAILLE_TABLEAU_Y 40
-#define TAILLE_TABLEAU_X 80
-#define NB_PAVES 5
 
-/*Constantes des pavées*/
-#define ZONE_DE_PROTECTION_X 15
-#define ZONE_DE_PROTECTION_Y 5
-#define TAILLE_PAVE 5
-#define NOMBRE_PAVE 4
-
-/*Constantes des éléments graphique hors joueur*/
-#define CARACTERE_EFFACER ' ' // Pour effacer un élément
-#define MUR '#'
-#define POMME '6'
-#define VITESSE 90000  // micro_sec
-#define FERMER_JEU 'a' // Condition d'arrêt
-
-/*Constantes des position des téléporteurs*/
-#define T_HAUT_X 41
-#define T_HAUT_Y 1 - 1
-
-#define T_BAS_X 41
-#define T_BAS_Y 40 + 1
-
-#define T_DROITE_X 80 + 1
-#define T_DROITE_Y 21
-
-#define T_GAUCHE_X 1 - 1
-#define T_GAUCHE_Y 21
-
-
-// Définir les types tableau
-// + 1 car la dernière valeur sert au tampon du dernier élément,
-// pour l'effacer correctementpomme
-typedef int corp_longeur[LONGEUR_MAX + 1];
-typedef int t_pomme[NB_POMMES];
-
-// Définir le type du tableau à deux dimensions
-typedef char type_tableau_2d[TAILLE_TABLEAU_Y][TAILLE_TABLEAU_X];
-typedef int conteneur[NOMBRE_PAVE][TAILLE_PAVE][TAILLE_PAVE];
-
-
-// Définir le type du tableau à deux dimensions
-typedef char type_tableau_2d[TAILLE_TABLEAU_Y][TAILLE_TABLEAU_X];
 
 /* Initialisations des fonctions et des procédures */
 void teleportation(int *tete_x, int *tete_y);
