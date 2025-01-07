@@ -124,10 +124,6 @@ int main()
 	int nbMouv = 0;
 	bool pomme_ramasser;
 
-	/*variable lié aux pavées*/
-	int lesPavesX[NB_PAVES] = { 3, 74, 3, 74, 38, 38};
-	int lesPavesY[NB_PAVES] = { 3, 3, 34, 34, 21, 15};
-
 	conteneur pos_des_paves_x;
 	conteneur pos_des_paves_y;
 
@@ -135,7 +131,7 @@ int main()
 	creation_du_serpent(POS_INITIAL_JOUEUR_X + 1, POS_INITIAL_JOUEUR_Y + 1, les_x, les_y);
 	init_plateau(plateau);
 	dessiner_plateau(plateau);
-	deposer_pave(pos_des_paves_x, pos_des_paves_y);
+	//deposer_pave(pos_des_paves_x, pos_des_paves_y);
 
 	disable_echo();
 
@@ -153,6 +149,7 @@ int main()
 	do
 	{
 		// Lire les entrer au clavier
+		nbMouv++;
 		lettre = lire_entrer();
 		/*
 			Cette condition est ici pour éviter d'effacer le bout du serpent
@@ -196,7 +193,6 @@ int main()
 			effacer_serpent(les_x, les_y);
 			dessiner_serpent(les_x, les_y);
 			usleep(VITESSE);
-			nbMouv++;
 		}
 		/*
 		Le temps de jeu étant dérisoire, nous prenons en compte uniquement le temps
@@ -522,53 +518,30 @@ void deposer_pave(conteneur position_x, conteneur position_y)
 	 * @param position_x position des x des différent pavés
 	 * @param position_y position des y des différent pavés
 	 */
-	int pos_x, pos_y, i, y, z, tampon;
+	int i, y, z;
 
-	// Ce sont les variable requis pour connaitre où en est la boucle dans le positionnement
-	// Des pavés. Et d'y inscrire les position interdite par ceux-ci
-	int indice = 0;
-	corp_longeur position_interdite_x = {}; // Initialiser toutes les valeurs du tableau à 0
-	corp_longeur position_interdite_y = {};
+	/*variable lié aux pavées*/
+	int lesPavesX[NB_PAVES] = { 3, 74, 3, 74, 38, 38};
+	int lesPavesY[NB_PAVES] = { 3, 3, 34, 34, 21, 15};
 
-	srand(time(NULL)); // Rendre l'aléatoire plus aléatoire
 
-	for (z = 0; z < NOMBRE_PAVE; z++)
+	for (z = 0; z < NB_PAVES; z++)
 	{
 
 		// Génération aléatoire en x et en y des pavé, en evitant qu'ils apparraissent sur le joueur
 		// En créant une protection de 10 block autour de la tête (devant, derrière, haut et en bas)
-		do
+
+		for (i = lesPavesY[z]; i < (TAILLE_PAVE + lesPavesY[z]); i++)
 		{
-			pos_x = rand() % (TAILLE_TABLEAU_X - TAILLE_PAVE - 3) + 3;
-			tampon = pos_x;
-			pos_y = rand() % (TAILLE_TABLEAU_Y - TAILLE_PAVE - 3) + 3;
-
-		} while (
-
-			// Vérification du positionnement dans le tableau
-			(pos_x >= POS_INITIAL_JOUEUR_X - ZONE_DE_PROTECTION_X && pos_x <= POS_INITIAL_JOUEUR_X + ZONE_DE_PROTECTION_X &&
-			 pos_y >= POS_INITIAL_JOUEUR_Y - ZONE_DE_PROTECTION_Y && pos_y <= POS_INITIAL_JOUEUR_Y + ZONE_DE_PROTECTION_Y)
-
-			// Vérification du positionnement les uns sur les autres
-			|| (confirmer_position(indice, position_interdite_x, pos_x) == 1 && confirmer_position(indice, position_interdite_y, pos_y) == 1));
-
-		position_interdite_x[indice] = pos_x;
-		position_interdite_y[indice] = pos_y;
-		indice++;
-
-		for (i = 0; i < TAILLE_PAVE; i++)
-		{
-			for (y = 0; y < TAILLE_PAVE; y++)
+			for (y = lesPavesX[z]; y < (TAILLE_PAVE + lesPavesX[z]); y++)
 			{
+				/* + 1 pour géré les bordures*/
+				afficher(y, i, MUR);
+				position_x[z][i][y] = y;
+				position_y[z][i][y] = i;
 
-				afficher(pos_x, pos_y, MUR);
-				position_x[z][i][y] = pos_x;
-				position_y[z][i][y] = pos_y;
-
-				pos_x++;
 			}
-			pos_x = tampon;
-			pos_y++;
+
 		}
 	}
 	fflush(stdout);
