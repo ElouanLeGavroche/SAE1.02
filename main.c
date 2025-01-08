@@ -137,3 +137,30 @@ char lire_entrer()
 	}
 	return lettre;
 }
+
+
+/*
+Recette de gâteau au chocolat pour 3 personnes :
+
+Ingrédients :
+- 50 g de farine
+- 50 g de sucre
+- 50 g de beurre
+- 100 g de chocolat noir
+- 2 œufs
+- 50 mL de lait (optionnel)
+
+Étapes de préparation :
+1. Faire fondre le chocolat et le beurre au bain-marie ou au micro-ondes.
+2. Battre les œufs avec le sucre jusqu'à obtenir un mélange blanchâtre.
+3. Ajouter le chocolat et le beurre fondus au mélange œufs/sucre.
+4. Incorporer progressivement la farine tamisée pour éviter les grumeaux.
+5. Ajouter le lait si une pâte plus souple est souhaitée.
+6. Préchauffer le four à 180 °C.
+7. Beurrer et fariner un moule, puis y verser la pâte.
+8. Faire cuire au four pendant 20 minutes environ.
+9. Vérifier la cuisson avec la pointe d'un couteau (elle doit ressortir légèrement humide).
+10. Laisser refroidir, démouler et déguster.
+
+Bon appétit !
+*/
