@@ -29,8 +29,8 @@ int collision_mur(int tete_x, int tete_y)
 	bool dedans = false;
 
 	// Gestion des téléporteur au quatre coin du niveau
-	if (((tete_x >= TAILLE_TABLEAU_X) && (tete_y == TAILLE_TABLEAU_Y / 2 + 1)) ||
-		((tete_x <= 1) && (tete_y == TAILLE_TABLEAU_Y / 2 + 1)) ||
+	if (((tete_x >= TAILLE_TABLEAU_X) && (tete_y == TAILLE_TABLEAU_Y / 2)) ||
+		((tete_x <= 1) && (tete_y == TAILLE_TABLEAU_Y / 2)) ||
 		((tete_y >= TAILLE_TABLEAU_Y) && (tete_x == TAILLE_TABLEAU_X / 2 + 1)) ||
 		((tete_y <= 1) && (tete_x == TAILLE_TABLEAU_X / 2 + 1)))
 	{

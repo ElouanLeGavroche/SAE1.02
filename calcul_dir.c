@@ -70,11 +70,11 @@ void teleportation(int *tete_x, int *tete_y)
 	 * @param *tete_y tête du joueur en y en sortie
 	 */
 
-	if (*tete_x > TAILLE_TABLEAU_X && *tete_y == TAILLE_TABLEAU_Y / 2 + 1)
+	if (*tete_x > TAILLE_TABLEAU_X && *tete_y == TAILLE_TABLEAU_Y / 2)
 	{
 		*tete_x = 1; // Téléporteur à droite du monde
 	}
-	else if (*tete_x < 1 && *tete_y == TAILLE_TABLEAU_Y / 2 + 1)
+	else if (*tete_x < 1 && *tete_y == TAILLE_TABLEAU_Y / 2)
 	{
 		*tete_x = TAILLE_TABLEAU_X; // Téléporteur à gauche du monde
 	}

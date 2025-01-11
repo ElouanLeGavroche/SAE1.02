@@ -6,7 +6,7 @@
 #define TETE_JOUEUR 'O' // Tête du joueur
 #define CORP_JOUEUR 'X' // Corp du joueur
 #define POS_INITIAL_JOUEUR_X 40
-#define POS_INITIAL_JOUEUR_Y 20
+#define POS_INITIAL_JOUEUR_Y 19
 #define LONGEUR_MAX 20
 #define TAILLE_JOUEUR 10
 #define TAILLE_INITIAL_DU_JOUEUR 10 // Taille de base du joueur (en réalité 10, car la boucle for commence à 0)
@@ -22,7 +22,7 @@
 #define ZONE_DE_PROTECTION_X 15
 #define ZONE_DE_PROTECTION_Y 5
 #define TAILLE_PAVE 5
-#define NOMBRE_PAVE 5 
+#define NOMBRE_PAVE 6 
 
 /*Constantes des éléments graphique hors joueur*/
 #define CARACTERE_EFFACER ' ' // Pour effacer un élément
@@ -39,9 +39,9 @@
 #define T_BAS_Y 40 + 1
 
 #define T_DROITE_X 80 + 1
-#define T_DROITE_Y 21
+#define T_DROITE_Y 20
 
 #define T_GAUCHE_X 1 - 1
-#define T_GAUCHE_Y 21
+#define T_GAUCHE_Y 20
 
 #endif

@@ -1,5 +1,5 @@
 #include "src/fonction_tete.h"
-
+#include <stdio.h>
 void init_plateau(type_tableau_2d tableau)
 {
 	/**
@@ -13,7 +13,7 @@ void init_plateau(type_tableau_2d tableau)
 		for (col = 0; col < TAILLE_TABLEAU_X; col++)
 		{
 			if (col == TAILLE_TABLEAU_X / 2 ||
-				lig == TAILLE_TABLEAU_Y / 2 ||
+				lig == TAILLE_TABLEAU_Y / 2 - 1 ||
 				(col == TAILLE_TABLEAU_Y - 1) / 2 ||
 				(lig == TAILLE_TABLEAU_Y - 1) / TAILLE_TABLEAU_Y / 2)
 			{
@@ -68,18 +68,16 @@ void deposer_pave(conteneur position_x, conteneur position_y)
 	for (z = 0; z < NB_PAVES; z++)
 	{
 
-		// Génération aléatoire en x et en y des pavé, en evitant qu'ils apparraissent sur le joueur
-		// En créant une protection de 10 block autour de la tête (devant, derrière, haut et en bas)
-
-		for (i = lesPavesY[z]; i < (TAILLE_PAVE + lesPavesY[z]); i++)
+		for (i = 0; i < TAILLE_PAVE; i++)
 		{
-			for (y = lesPavesX[z]; y < (TAILLE_PAVE + lesPavesX[z]); y++)
+			for (y = 0; y < TAILLE_PAVE; y++)
 			{
 				/* + 1 pour géré les bordures*/
-				afficher(y, i, MUR);
-				position_x[z][i][y] = y;
-				position_y[z][i][y] = i;
-
+				afficher(y + lesPavesX[z], i + lesPavesY[z], MUR);
+				
+				position_x[z][i][y] = y + lesPavesX[z];
+				position_y[z][i][y] = i + lesPavesY[z];
+				
 			}
 
 		}
