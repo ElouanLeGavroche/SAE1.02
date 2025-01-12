@@ -17,6 +17,7 @@
 #define TAILLE_TABLEAU_Y 40
 #define TAILLE_TABLEAU_X 80
 #define NB_PAVES 6
+#define TAILLE_TUPLE 2
 
 /*Constantes des pavées*/
 #define ZONE_DE_PROTECTION_X 15

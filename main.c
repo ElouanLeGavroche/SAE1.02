@@ -2,8 +2,8 @@
  * @file main.c
  * @brief Programme d'un jeu de snake autonome
  * @author Dhennin Elouan, Martin Esmeralda
- * @version 2
- * @date 16/12/24
+ * @version 3
+ * @date 12/01/25
  *
  *
  */
@@ -55,7 +55,6 @@ int main()
 	precalcul_pomme(les_pommes_x, les_pommes_y, pomme_actuel, les_x[0], les_y[0], &x_avant_pomme, &y_avant_pomme);
 	afficher(les_pommes_x[pomme_actuel], les_pommes_y[pomme_actuel], POMME);
 	clock_t begin = clock();
-
 	do
 	{
 		// Lire les entrer au clavier

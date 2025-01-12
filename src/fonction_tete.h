@@ -14,6 +14,7 @@ void creation_du_serpent(int x, int y, corp_longeur les_x, corp_longeur les_y);
 /*Procédures de calcule de direction pour le CPU*/
 void precalcul_pomme(t_pomme les_pommes_x, t_pomme les_pommes_y, int nb, int tete_x, int tete_y, int *x_avant_pomme, int *y_avant_pomme);
 void progresser(corp_longeur les_x, corp_longeur les_y, bool *collision_joueur, int *x_avant_pomme, int *y_avant_pomme, conteneur block_x, conteneur block_y);
+bool calcule_avancer_de_direction(int tete_x, int tete_y, int direction, conteneur block_x, conteneur block_y, int x_avant_pomme, int y_avant_pomme);
 
 /*Procédures/Fonctions de communication entre la machine et l'utilisateur*/
 char lire_entrer();

@@ -17,4 +17,7 @@ typedef int conteneur[NOMBRE_PAVE][TAILLE_PAVE][TAILLE_PAVE];
 // Définir le type du tableau à deux dimensions
 typedef char type_tableau_2d[TAILLE_TABLEAU_Y][TAILLE_TABLEAU_X];
 
+// Définir le type des tuple à deux éléments entier
+typedef int tuple_2_elt[TAILLE_TUPLE];
+
 #endif
