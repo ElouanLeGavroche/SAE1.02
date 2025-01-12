@@ -29,8 +29,8 @@ int main()
 	t_pomme les_pommes_x = {75, 75, 78, 2, 8, 78, 74, 2, 72, 5};
 	t_pomme les_pommes_y = {8, 39, 2, 2, 5, 39, 33, 38, 35, 2};
 
-	int nb = 0;
-	int nbMouv = 0;
+	int pomme_actuel = 0;
+	int nb_mouvement  = 0;
 	bool pomme_ramasser;
 
 	conteneur pos_des_paves_x;
@@ -52,14 +52,14 @@ int main()
 	int tamp_x = les_x[0];
 	int tamp_y = les_y[0];
 
-	precalcul_pomme(les_pommes_x, les_pommes_y, nb, les_x[0], les_y[0], &x_avant_pomme, &y_avant_pomme);
-	afficher(les_pommes_x[nb], les_pommes_y[nb], POMME);
+	precalcul_pomme(les_pommes_x, les_pommes_y, pomme_actuel, les_x[0], les_y[0], &x_avant_pomme, &y_avant_pomme);
+	afficher(les_pommes_x[pomme_actuel], les_pommes_y[pomme_actuel], POMME);
 	clock_t begin = clock();
 
 	do
 	{
 		// Lire les entrer au clavier
-		nbMouv++;
+		nb_mouvement ++;
 		lettre = lire_entrer();
 		/*
 			Cette condition est ici pour éviter d'effacer le bout du serpent
@@ -75,30 +75,30 @@ int main()
 		// Si le joueur est téléporter, alors on recalcule la distance
 		if (tamp_x != les_x[0] || tamp_y != les_y[0])
 		{
-			precalcul_pomme(les_pommes_x, les_pommes_y, nb, les_x[0], les_y[0], &x_avant_pomme, &y_avant_pomme);
+			precalcul_pomme(les_pommes_x, les_pommes_y, pomme_actuel, les_x[0], les_y[0], &x_avant_pomme, &y_avant_pomme);
 		}
 
 		/*Collision et gestion du jeu avec la pomme*/
-		pomme_ramasser = collision_avec_pomme(les_x[0], les_y[0], les_pommes_x[nb], les_pommes_y[nb]);
+		pomme_ramasser = collision_avec_pomme(les_x[0], les_y[0], les_pommes_x[pomme_actuel], les_pommes_y[pomme_actuel]);
 
 		if (pomme_ramasser == true)
 		{
-			nb++;
+			pomme_actuel++;
 
-			if (nb == NB_POMMES)
+			if (pomme_actuel == NB_POMMES)
 			{
 				collision_joueur = true;
 			}
 			else
 			{
-				precalcul_pomme(les_pommes_x, les_pommes_y, nb, les_x[0], les_y[0], &x_avant_pomme, &y_avant_pomme);
-				afficher(les_pommes_x[nb], les_pommes_y[nb], POMME);
+				precalcul_pomme(les_pommes_x, les_pommes_y, pomme_actuel, les_x[0], les_y[0], &x_avant_pomme, &y_avant_pomme);
+				afficher(les_pommes_x[pomme_actuel], les_pommes_y[pomme_actuel], POMME);
 			}
 		}
 		// Si le joueur obtien la dernière pomme, on veux qu'ils l'efface
 		// Alors malgré le fait qu'il aie fini, on actualise ça position pour
 		// Montrer la pomme manger
-		if (collision_joueur != 1 || nb == NB_POMMES)
+		if (collision_joueur != 1 || pomme_actuel == NB_POMMES)
 		{
 			effacer_serpent(les_x, les_y);
 			dessiner_serpent(les_x, les_y);
@@ -109,7 +109,7 @@ int main()
 		D'attente entre deux image. Qui est finalement la majorité du temps de jeu
 		du joueur. Attendre...
 		*/
-	} while ((lettre != FERMER_JEU) && nb != NB_POMMES);
+	} while ((lettre != FERMER_JEU) && pomme_actuel != NB_POMMES);
 
 	clock_t end = clock();
 	double tmpsCPU = ((end - begin) * 1.0) / CLOCKS_PER_SEC;
@@ -118,7 +118,7 @@ int main()
 	goto_x_y(1, CACHER_CURSEUR);
 
 	printf("Temps CPU : %.4f secondes\n", tmpsCPU);
-	printf("Nombre de mouvements : %d\n", nbMouv);
+	printf("Nombre de mouvements : %d\n", nb_mouvement );
 
 	return EXIT_SUCCESS;
 }

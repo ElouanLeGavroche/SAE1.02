@@ -9,7 +9,7 @@ mkdir -p $PATH_EXEC
 mkdir -p $PATH_SRC
 
 rm -f $PATH_EXEC/*.out # supprimer les fichiers .out
-# compilation séparée
+# compilation séparé
 
 gcc -Wall -c $PATH_PRG/fonction_donner.c 
 gcc -Wall -c $PATH_PRG/gestion_graphique.c 
@@ -27,3 +27,4 @@ rm -f *.gch # supprimer les fichiers .gch
 # lancement du programme … si tout va bien
 ./$PATH_EXEC/main.out
 
+rm $PATH_EXEC/*.out # supprimer les fichiers .out

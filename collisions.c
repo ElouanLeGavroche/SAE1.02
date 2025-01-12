@@ -60,7 +60,12 @@ int collision_pave(conteneur block_x, conteneur block_y, int tete_x, int tete_y)
 
 	int i, y, z;
 	bool collision = 0;
-
+	/*
+		Parcours d'une boucle à trois dimension :
+		z -> les n pavés
+		i -> n largeur des pavés
+		y -> n profondeur des pavés
+	*/
 	for (z = 0; z <= NOMBRE_PAVE; z++)
 	{
 		for (i = 0; i <= TAILLE_PAVE; i++)
