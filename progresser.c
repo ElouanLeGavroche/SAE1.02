@@ -67,18 +67,20 @@ void progresser(corp_longeur les_x, corp_longeur les_y, bool *collision_joueur, 
             {
                 /* Si le serpent ne peut pas avancer dans la direction initiale, on cherche une alternative */
 
+                
+
                 // Si l'indicateur de mouvement vertical est nul (aucun mouvement Y prévu)
-                if (indicateur_y == 0)
+                if ((collision_pave(block_x, block_y, les_x[0], les_y[0] + indicateur_y) == false)
+                   || indicateur_y == 0)
                 {
                     // Sinon, change de direction verticalement (haus ou bas) selon les collisions
-					// (L'on change la priorité à la collision plutôt qu'à la distance)
+                    // (L'on change la priorité à la collision plutôt qu'à la distance)
                     indicateur_y = (collision_avec_lui_meme(les_x, les_y, les_x[0], les_y[0] + 1) == false) ? 1 : -1;
 
                     // Vérifie si le nouveau mouvement vertical est possible.
                     if ((collision_mur(les_x[0], les_y[0] + indicateur_y) == true)
 					   && (collision_avec_lui_meme(les_x, les_y, les_x[0], les_y[0] + indicateur_y) == false)
-            		   && (collision_avec_lui_meme(les_x, les_y, les_x[0], les_y[0] + indicateur_y + indicateur_y) == false)
-					   && (collision_pave(block_x, block_y, les_x[0], les_y[0] + indicateur_y) ==  false))
+            		   && (collision_avec_lui_meme(les_x, les_y, les_x[0], les_y[0] + indicateur_y + indicateur_y) == false))
                     {
                         les_y[0] = les_y[0] + indicateur_y;
                         (*y_avant_pomme) = (*y_avant_pomme) - indicateur_y;
