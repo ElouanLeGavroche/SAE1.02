@@ -103,3 +103,16 @@ int collision_avec_pomme(int x_tete, int y_tete, int x_pomme, int y_pomme)
 	return collision;
 }
 
+bool collision_avec_joueur (int tete_x_joueur1, int tete_y_joueur1, corp_longeur les_x_joueur2, corp_longeur les_y_joueur2)
+{
+	int i;
+	bool collision = false;
+	for (i = 1; i < TAILLE_JOUEUR; i++)
+	{
+		if ((tete_x_joueur1 == les_x_joueur2[i]) && (tete_y_joueur1 == les_y_joueur2[i]))
+		{
+			collision = true;
+		}
+	}
+	return collision;
+}
