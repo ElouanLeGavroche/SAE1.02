@@ -3,10 +3,16 @@
 
 // CONSTANTE DU JEU
 /*Constante du joueur*/
-#define TETE_JOUEUR 'O' // Tête du joueur
+//#define TETE_JOUEUR 'O' // Tête du joueur
+#define TETE_JOUEUR1 '1'
+#define TETE_JOUEUR2 '2'
 #define CORP_JOUEUR 'X' // Corp du joueur
-#define POS_INITIAL_JOUEUR_X 40
-#define POS_INITIAL_JOUEUR_Y 19
+//#define POS_INITIAL_JOUEUR_X 40
+//#define POS_INITIAL_JOUEUR_Y 19
+#define POS_INITIAL_JOUEUR1_X 40
+#define POS_INITIAL_JOUEUR1_Y 14
+#define POS_INITIAL_JOUEUR2_X 40
+#define POS_INITIAL_JOUEUR2_Y 26
 #define LONGEUR_MAX 20
 #define TAILLE_JOUEUR 10
 #define TAILLE_INITIAL_DU_JOUEUR 10 // Taille de base du joueur (en réalité 10, car la boucle for commence à 0)
