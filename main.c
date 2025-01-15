@@ -75,7 +75,7 @@ int main()
 			Cette condition est ici pour éviter d'effacer le bout du serpent
 			alors qu'il n'y a eu aucun déplacement à la fin du jeu.
 		*/
-		progresser_joueur1(les_x_joueur1, les_y_joueur1, &collision_joueur1, &x_avant_pomme_joueur1, &y_avant_pomme_joueur1, pos_des_paves_x, pos_des_paves_y);
+		progresser1(les_x_joueur1, les_y_joueur1, les_x_joueur2, les_y_joueur2, &collision_joueur1, &x_avant_pomme_joueur1, &y_avant_pomme_joueur1, pos_des_paves_x, pos_des_paves_y);
 
 		tamp_x = les_x_joueur1[0];
 		tamp_y = les_y_joueur1[0];
@@ -119,7 +119,7 @@ int main()
 					Cette condition est ici pour éviter d'effacer le bout du serpent
 					alors qu'il n'y a eu aucun déplacement à la fin du jeu.
 				*/
-				progresser_joueur2(les_x_joueur2, les_y_joueur2, &collision_joueur2, &x_avant_pomme_joueur2, &y_avant_pomme_joueur2, pos_des_paves_x, pos_des_paves_y);
+				progresser2(les_x_joueur2, les_y_joueur2, les_x_joueur1, les_y_joueur1, &collision_joueur2, &x_avant_pomme_joueur2, &y_avant_pomme_joueur2, pos_des_paves_x, pos_des_paves_y);
 
 				tamp_x = les_x_joueur2[0];
 				tamp_y = les_y_joueur2[0];
@@ -211,3 +211,5 @@ char lire_entrer()
 	}
 	return lettre;
 }
+
+																																																																																																		*/
