@@ -37,7 +37,7 @@ void afficher(int x, int y, char c)
 	goto_x_y(1, CACHER_CURSEUR); // cacher le curseur pour une meilleur lisibilité
 }
 
-void dessiner_serpent(corp_longeur les_x, corp_longeur les_y)
+void dessiner_serpent(corp_longeur les_x, corp_longeur les_y,char tete_joueur)
 {
 	/**
 	 * @brief Dessine le joueur en premier, et fait une boucle pour dessiner les enfants
@@ -50,7 +50,7 @@ void dessiner_serpent(corp_longeur les_x, corp_longeur les_y)
 	{
 		afficher(les_x[i], les_y[i], CORP_JOUEUR);
 	}
-	afficher(les_x[0], les_y[0], TETE_JOUEUR);
+	afficher(les_x[0], les_y[0], tete_joueur);
 	fflush(stdout);
 }
 

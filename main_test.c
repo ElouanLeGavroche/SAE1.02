@@ -65,6 +65,7 @@ int main()
 	precalcul_pomme_joueur1(les_pommes_x, les_pommes_y, pomme_actuel, les_x_joueur1[0], les_y_joueur1[0], &x_avant_pomme_joueur1, &y_avant_pomme_joueur1);
 	precalcul_pomme_joueur2(les_pommes_x, les_pommes_y, pomme_actuel, les_x_joueur2[0], les_y_joueur2[0], &x_avant_pomme_joueur2, &y_avant_pomme_joueur2);
 	afficher(les_pommes_x[pomme_actuel], les_pommes_y[pomme_actuel], POMME);
+	clock_t begin = clock();
 	do
 	{
 		// Lire les entrer au clavier
@@ -74,7 +75,7 @@ int main()
 			Cette condition est ici pour éviter d'effacer le bout du serpent
 			alors qu'il n'y a eu aucun déplacement à la fin du jeu.
 		*/
-		progresser_joueur1(les_x_joueur1, les_y_joueur1, &collision_joueur1, &x_avant_pomme_joueur1, &y_avant_pomme_joueur1, pos_des_paves_x, pos_des_paves_y);
+		progresser_joueur1(les_x_joueur1, les_y_joueur1,les_x_joueur2, les_y_joueur2, &collision_joueur1, &x_avant_pomme_joueur1, &y_avant_pomme_joueur1, pos_des_paves_x, pos_des_paves_y);
 
 		tamp_x = les_x_joueur1[0];
 		tamp_y = les_y_joueur1[0];
@@ -118,7 +119,7 @@ int main()
 					Cette condition est ici pour éviter d'effacer le bout du serpent
 					alors qu'il n'y a eu aucun déplacement à la fin du jeu.
 				*/
-				progresser_joueur2(les_x_joueur2, les_y_joueur2, &collision_joueur2, &x_avant_pomme_joueur2, &y_avant_pomme_joueur2, pos_des_paves_x, pos_des_paves_y);
+				progresser_joueur2(les_x_joueur2, les_y_joueur2, les_x_joueur1, les_y_joueur2, &collision_joueur2, &x_avant_pomme_joueur2, &y_avant_pomme_joueur2, pos_des_paves_x, pos_des_paves_y);
 
 				tamp_x = les_x_joueur2[0];
 				tamp_y = les_y_joueur2[0];
@@ -182,10 +183,13 @@ int main()
 		*/
 	} while ((lettre != FERMER_JEU) && pomme_actuel != NB_POMMES);
 
+	clock_t end = clock();
+	double tmpsCPU = ((end - begin) * 1.0) / CLOCKS_PER_SEC;
 
 	enable_echo();
 	goto_x_y(1, CACHER_CURSEUR);
 
+	printf("Temps CPU : %.4f secondes\n", tmpsCPU);
 	printf("Nombre de mouvements joueur 1: %d, pommes mangées : %d\n", nb_mouvement_joueur1,pomme_joueur1 );
 	printf("Nombre de mouvements joueur 2: %d, pommes mangées : %d\n", nb_mouvement_joueur2,pomme_joueur2 );
 
@@ -208,3 +212,15 @@ char lire_entrer()
 	return lettre;
 }
 
+
+																																																																																																				/*
+																																																																																																									_________________________
+																																																																																																									|						 |
+																																																																																																									|						 |						
+																																																																																																									|					|	 |
+																																																																																																									|			*			 |
+																																																																																																									|	|   				 |
+																																																																																																									|						 |
+																																																																																																									|		 6	|	8		 |
+																																																																																																									|________________________|
+																																																																																																				*/

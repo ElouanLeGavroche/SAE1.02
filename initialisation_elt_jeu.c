@@ -32,7 +32,7 @@ void init_plateau(type_tableau_2d tableau)
 	}
 }
 
-void creation_du_serpent(int x, int y, corp_longeur les_x, corp_longeur les_y)
+void creation_du_serpent_joueur(int x, int y, corp_longeur les_x, corp_longeur les_y)
 {
 	/**
 	 * @brief Fonction qui viens crée le serpent la premièrer fois.
@@ -43,6 +43,8 @@ void creation_du_serpent(int x, int y, corp_longeur les_x, corp_longeur les_y)
 	 *
 	 */
 	int i = 0;
+
+	
 	for (i = 0; i < TAILLE_JOUEUR; i++)
 	{
 		les_x[i] = x - i;
