@@ -18,6 +18,7 @@
 
 int main()
 {
+	return EXIT_SUCCESS;
 	system("clear");
 	char lettre = CARACTERE_EFFACER; // Valeur du caractère espace
 	type_tableau_2d plateau;		 // Plateau de jeu
@@ -211,5 +212,3 @@ char lire_entrer()
 	}
 	return lettre;
 }
-
-																																																																																																		*/
