@@ -18,7 +18,7 @@
 
 int main()
 {
-	return EXIT_SUCCESS;
+	//return EXIT_SUCCESS;
 	system("clear");
 	char lettre = CARACTERE_EFFACER; // Valeur du caractère espace
 	type_tableau_2d plateau;		 // Plateau de jeu
@@ -30,8 +30,8 @@ int main()
 	bool collision_joueur2 = false;
 
 	/*variable lié à la pomme*/
-	t_pomme les_pommes_x = {75, 75, 78, 2, 8, 78, 74, 2, 72, 5};
-	t_pomme les_pommes_y = {8, 39, 2, 2, 5, 39, 33, 38, 35, 2};
+    int les_pommes_x[NB_POMMES] = {40, 75, 78, 2, 9, 78, 74, 2, 72, 5};
+    int les_pommes_y[NB_POMMES] = {20, 38, 2, 2, 5, 38, 32, 38, 32, 2};
 
 	int pomme_actuel = 0;
 	int pomme_joueur1 = 0;
@@ -44,8 +44,8 @@ int main()
 	conteneur pos_des_paves_y;
 
 	// apparaître à 20 sur le tableau et non sur la console (20 + décalage du tableau dans la console)
-	creation_du_serpent_joueur(POS_INITIAL_JOUEUR1_X , POS_INITIAL_JOUEUR1_Y , les_x_joueur1, les_y_joueur1);//joueur 1
-	creation_du_serpent_joueur(POS_INITIAL_JOUEUR2_X , POS_INITIAL_JOUEUR2_Y , les_x_joueur2, les_y_joueur2);//joueur2
+	creation_du_serpent_joueur(POS_INITIAL_JOUEUR1_X , POS_INITIAL_JOUEUR1_Y , les_x_joueur1, les_y_joueur1, 1);//joueur 1
+	creation_du_serpent_joueur(POS_INITIAL_JOUEUR2_X , POS_INITIAL_JOUEUR2_Y , les_x_joueur2, les_y_joueur2, 2);//joueur2
 	init_plateau(plateau);
 	dessiner_plateau(plateau);
 	deposer_pave(pos_des_paves_x, pos_des_paves_y);

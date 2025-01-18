@@ -32,7 +32,7 @@ void init_plateau(type_tableau_2d tableau)
 	}
 }
 
-void creation_du_serpent_joueur(int x, int y, corp_longeur les_x, corp_longeur les_y)
+void creation_du_serpent_joueur(int x, int y, corp_longeur les_x, corp_longeur les_y, int dir)
 {
 	/**
 	 * @brief Fonction qui viens crée le serpent la premièrer fois.
@@ -40,16 +40,20 @@ void creation_du_serpent_joueur(int x, int y, corp_longeur les_x, corp_longeur l
 	 * @param y position initial en y
 	 * @param les_x tableau des position en x
 	 * @param les_y tableau des position en y
+	 * @param dir 1 = droite | 2 = gauche
 	 *
 	 */
 	int i = 0;
 
-	
-	for (i = 0; i < TAILLE_JOUEUR; i++)
+	int direction = (dir == 1)? 1 : -1;
+
+	for (i = 0; i < TAILLE_JOUEUR; i ++)
 	{
-		les_x[i] = x - i;
+		les_x[i] = x - i * direction;
 		les_y[i] = y;
 	}
+
+	
 }
 
 
@@ -63,8 +67,8 @@ void deposer_pave(conteneur position_x, conteneur position_y)
 	int i, y, z;
 
 	/*variable lié aux pavées*/
-	int lesPavesX[NB_PAVES] = { 3, 74, 3, 74, 38, 38};
-	int lesPavesY[NB_PAVES] = { 3, 3, 34, 34, 21, 15};
+	int les_paves_x[NB_PAVES] = { 4, 73, 4, 73, 38, 38};
+    int les_paves_y[NB_PAVES] = { 4, 4, 33, 33, 14, 22};
 
 
 	for (z = 0; z < NB_PAVES; z++)
@@ -75,10 +79,10 @@ void deposer_pave(conteneur position_x, conteneur position_y)
 			for (y = 0; y < TAILLE_PAVE; y++)
 			{
 				/* + 1 pour géré les bordures*/
-				afficher(y + lesPavesX[z], i + lesPavesY[z], MUR);
+				afficher(y + les_paves_x[z], i + les_paves_y[z], MUR);
 				
-				position_x[z][i][y] = y + lesPavesX[z];
-				position_y[z][i][y] = i + lesPavesY[z];
+				position_x[z][i][y] = y + les_paves_x[z];
+				position_y[z][i][y] = i + les_paves_y[z];
 				
 			}
 
