@@ -152,17 +152,7 @@ int main()
 						afficher(les_pommes_x[pomme_actuel], les_pommes_y[pomme_actuel], POMME);
 					}
 				}
-				// Si le joueur obtien la dernière pomme, on veux qu'ils l'efface
-				// Alors malgré le fait qu'il aie fini, on actualise ça position pour
-				// Montrer la pomme manger
-				if (collision_joueur2 != 1 || pomme_actuel == NB_POMMES)
-				{
-					effacer_serpent(les_x_joueur1, les_y_joueur1);
-					effacer_serpent(les_x_joueur2,les_y_joueur2);
-					dessiner_serpent(les_x_joueur1, les_y_joueur1,TETE_JOUEUR1);
-					dessiner_serpent(les_x_joueur2, les_y_joueur2,TETE_JOUEUR2);
-					usleep(VITESSE);
-				}
+
 			}
 		}
 		// Si le joueur obtien la dernière pomme, on veux qu'ils l'efface

@@ -16,6 +16,7 @@
 #define LONGEUR_MAX 20
 #define TAILLE_JOUEUR 10
 #define TAILLE_INITIAL_DU_JOUEUR 10 // Taille de base du joueur (en réalité 10, car la boucle for commence à 0)
+#define DIRECTION_INTERDIT -10
 
 /*Les constantes du jeu*/
 #define NB_POMMES 10
@@ -35,7 +36,7 @@
 #define CARACTERE_EFFACER ' ' // Pour effacer un élément
 #define MUR '#'
 #define POMME '6'
-#define VITESSE 60000  // micro_sec
+#define VITESSE 150000  // micro_sec
 #define FERMER_JEU 'a' // Condition d'arrêt
 
 /*Constantes des position des téléporteurs*/
