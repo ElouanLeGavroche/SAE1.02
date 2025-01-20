@@ -18,6 +18,7 @@
 
 int main()
 {
+	//return EXIT_SUCCESS;
 	system("clear");
 	char lettre = CARACTERE_EFFACER; // Valeur du caractère espace
 	type_tableau_2d plateau;		 // Plateau de jeu
@@ -29,8 +30,8 @@ int main()
 	bool collision_joueur2 = false;
 
 	/*variable lié à la pomme*/
-	t_pomme les_pommes_x = {75, 75, 78, 2, 8, 78, 74, 2, 72, 5};
-	t_pomme les_pommes_y = {8, 39, 2, 2, 5, 39, 33, 38, 35, 2};
+    int les_pommes_x[NB_POMMES] = {40, 75, 78, 2, 9, 78, 74, 2, 72, 5};
+    int les_pommes_y[NB_POMMES] = {20, 38, 2, 2, 5, 38, 32, 38, 32, 2};
 
 	int pomme_actuel = 0;
 	int pomme_joueur1 = 0;
@@ -43,8 +44,8 @@ int main()
 	conteneur pos_des_paves_y;
 
 	// apparaître à 20 sur le tableau et non sur la console (20 + décalage du tableau dans la console)
-	creation_du_serpent_joueur(POS_INITIAL_JOUEUR1_X , POS_INITIAL_JOUEUR1_Y , les_x_joueur1, les_y_joueur1);//joueur 1
-	creation_du_serpent_joueur(POS_INITIAL_JOUEUR2_X , POS_INITIAL_JOUEUR2_Y , les_x_joueur2, les_y_joueur2);//joueur2
+	creation_du_serpent_joueur(POS_INITIAL_JOUEUR1_X , POS_INITIAL_JOUEUR1_Y , les_x_joueur1, les_y_joueur1, 1);//joueur 1
+	creation_du_serpent_joueur(POS_INITIAL_JOUEUR2_X , POS_INITIAL_JOUEUR2_Y , les_x_joueur2, les_y_joueur2, 2);//joueur2
 	init_plateau(plateau);
 	dessiner_plateau(plateau);
 	deposer_pave(pos_des_paves_x, pos_des_paves_y);
@@ -65,6 +66,7 @@ int main()
 	precalcul_pomme_joueur1(les_pommes_x, les_pommes_y, pomme_actuel, les_x_joueur1[0], les_y_joueur1[0], &x_avant_pomme_joueur1, &y_avant_pomme_joueur1);
 	precalcul_pomme_joueur2(les_pommes_x, les_pommes_y, pomme_actuel, les_x_joueur2[0], les_y_joueur2[0], &x_avant_pomme_joueur2, &y_avant_pomme_joueur2);
 	afficher(les_pommes_x[pomme_actuel], les_pommes_y[pomme_actuel], POMME);
+	//clock_t begin = clock();
 	do
 	{
 		// Lire les entrer au clavier
@@ -74,7 +76,7 @@ int main()
 			Cette condition est ici pour éviter d'effacer le bout du serpent
 			alors qu'il n'y a eu aucun déplacement à la fin du jeu.
 		*/
-		progresser_joueur1(les_x_joueur1, les_y_joueur1, &collision_joueur1, &x_avant_pomme_joueur1, &y_avant_pomme_joueur1, pos_des_paves_x, pos_des_paves_y);
+		progresser1(les_x_joueur1, les_y_joueur1, les_x_joueur2, les_y_joueur2, &collision_joueur1, &x_avant_pomme_joueur1, &y_avant_pomme_joueur1, pos_des_paves_x, pos_des_paves_y);
 
 		tamp_x = les_x_joueur1[0];
 		tamp_y = les_y_joueur1[0];
@@ -118,7 +120,7 @@ int main()
 					Cette condition est ici pour éviter d'effacer le bout du serpent
 					alors qu'il n'y a eu aucun déplacement à la fin du jeu.
 				*/
-				progresser_joueur2(les_x_joueur2, les_y_joueur2, &collision_joueur2, &x_avant_pomme_joueur2, &y_avant_pomme_joueur2, pos_des_paves_x, pos_des_paves_y);
+				progresser2(les_x_joueur2, les_y_joueur2, les_x_joueur1, les_y_joueur1, &collision_joueur2, &x_avant_pomme_joueur2, &y_avant_pomme_joueur2, pos_des_paves_x, pos_des_paves_y);
 
 				tamp_x = les_x_joueur2[0];
 				tamp_y = les_y_joueur2[0];
@@ -150,17 +152,7 @@ int main()
 						afficher(les_pommes_x[pomme_actuel], les_pommes_y[pomme_actuel], POMME);
 					}
 				}
-				// Si le joueur obtien la dernière pomme, on veux qu'ils l'efface
-				// Alors malgré le fait qu'il aie fini, on actualise ça position pour
-				// Montrer la pomme manger
-				if (collision_joueur2 != 1 || pomme_actuel == NB_POMMES)
-				{
-					effacer_serpent(les_x_joueur1, les_y_joueur1);
-					effacer_serpent(les_x_joueur2,les_y_joueur2);
-					dessiner_serpent(les_x_joueur1, les_y_joueur1,TETE_JOUEUR1);
-					dessiner_serpent(les_x_joueur2, les_y_joueur2,TETE_JOUEUR2);
-					usleep(VITESSE);
-				}
+
 			}
 		}
 		// Si le joueur obtien la dernière pomme, on veux qu'ils l'efface
@@ -182,10 +174,13 @@ int main()
 		*/
 	} while ((lettre != FERMER_JEU) && pomme_actuel != NB_POMMES);
 
+	//clock_t end = clock();
+	//double tmpsCPU = ((end - begin) * 1.0) / CLOCKS_PER_SEC;
 
 	enable_echo();
 	goto_x_y(1, CACHER_CURSEUR);
 
+	//printf("Temps CPU : %.4f secondes\n", tmpsCPU);
 	printf("Nombre de mouvements joueur 1: %d, pommes mangées : %d\n", nb_mouvement_joueur1,pomme_joueur1 );
 	printf("Nombre de mouvements joueur 2: %d, pommes mangées : %d\n", nb_mouvement_joueur2,pomme_joueur2 );
 
@@ -207,4 +202,3 @@ char lire_entrer()
 	}
 	return lettre;
 }
-
