@@ -70,7 +70,6 @@ void deposer_pave(conteneur position_x, conteneur position_y)
 	int les_paves_x[NB_PAVES] = { 4, 73, 4, 73, 38, 38};
     int les_paves_y[NB_PAVES] = { 4, 4, 33, 33, 14, 22};
 
-
 	for (z = 0; z < NB_PAVES; z++)
 	{
 

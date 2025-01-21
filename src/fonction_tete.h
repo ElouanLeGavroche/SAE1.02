@@ -17,6 +17,8 @@ void precalcul_pomme_joueur2(t_pomme les_pommes_x, t_pomme les_pommes_y, int nb,
 void progresser1(corp_longeur les_x_joueur1, corp_longeur les_y_joueur1, corp_longeur les_x_joueur2, corp_longeur les_y_joueur2, bool *collision_joueur, int *x_avant_pomme, int *y_avant_pomme, conteneur block_x, conteneur block_y);
 void progresser2(corp_longeur les_x_joueur1, corp_longeur les_y_joueur1, corp_longeur les_x_joueur2, corp_longeur les_y_joueur2, bool *collision_joueur, int *x_avant_pomme, int *y_avant_pomme, conteneur block_x, conteneur block_y);
 bool calcule_avancer_de_direction(int tete_x, int tete_y, int direction, conteneur block_x, conteneur block_y, int x_avant_pomme, int y_avant_pomme);
+void deplacer_serpent(corp_longeur les_x_joueur1, corp_longeur les_y_joueur1, int *x_avant_pomme, int *y_avant_pomme, int dx, int dy);
+bool mouvement_possible(corp_longeur les_x_joueur1, corp_longeur les_y_joueur1, conteneur block_x, conteneur block_y, corp_longeur les_x_joueur2, corp_longeur les_y_joueur2, int dx, int dy);
 
 /*Procédures/Fonctions de communication entre la machine et l'utilisateur*/
 char lire_entrer();

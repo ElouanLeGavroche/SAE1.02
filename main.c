@@ -29,9 +29,11 @@ int main()
 	bool collision_joueur1 = false;
 	bool collision_joueur2 = false;
 
+
 	/*variable lié à la pomme*/
     int les_pommes_x[NB_POMMES] = {40, 75, 78, 2, 9, 78, 74, 2, 72, 5};
     int les_pommes_y[NB_POMMES] = {20, 38, 2, 2, 5, 38, 32, 38, 32, 2};
+
 
 	int pomme_actuel = 0;
 	int pomme_joueur1 = 0;
