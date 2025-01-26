@@ -69,11 +69,16 @@ int main()
 	precalcul_pomme_joueur2(les_pommes_x, les_pommes_y, pomme_actuel, les_x_joueur2[0], les_y_joueur2[0], &x_avant_pomme_joueur2, &y_avant_pomme_joueur2);
 	afficher(les_pommes_x[pomme_actuel], les_pommes_y[pomme_actuel], POMME);
 	//clock_t begin = clock();
+
+
 	do
 	{
 		// Lire les entrer au clavier
-		nb_mouvement_joueur1 ++;
 		lettre = lire_entrer();
+
+		/*gestion du tour du joueur 1*/
+		nb_mouvement_joueur1 ++;
+		
 		/*
 			Cette condition est ici pour éviter d'effacer le bout du serpent
 			alors qu'il n'y a eu aucun déplacement à la fin du jeu.
@@ -111,52 +116,57 @@ int main()
 				
 			}
 		}
-		else
+
+		// Si le joueur obtien la dernière pomme, on veux qu'ils l'efface
+		// Alors malgré le fait qu'il aie fini, on actualise ça position pour
+		// Montrer la pomme manger
+		if (collision_joueur1 != 1 || pomme_actuel == NB_POMMES)
 		{
-			if (lettre != FERMER_JEU)//si lettre 'a' rentree avant
+			effacer_serpent(les_x_joueur1, les_y_joueur1);
+			effacer_serpent(les_x_joueur2,les_y_joueur2);
+			dessiner_serpent(les_x_joueur1, les_y_joueur1,TETE_JOUEUR1);
+			dessiner_serpent(les_x_joueur2, les_y_joueur2,TETE_JOUEUR2);
+			usleep(VITESSE);
+		}
+
+		/*gestion du tour du joueur 1*/
+		nb_mouvement_joueur2 ++;
+		progresser2(les_x_joueur2, les_y_joueur2, les_x_joueur1, les_y_joueur1, &collision_joueur2, &x_avant_pomme_joueur2, &y_avant_pomme_joueur2, pos_des_paves_x, pos_des_paves_y);
+	
+			
+		tamp_x = les_x_joueur2[0];
+		tamp_y = les_y_joueur2[0];
+
+		teleportation(&les_x_joueur2[0], &les_y_joueur2[0]);
+
+		// Si le joueur est téléporter, alors on recalcule la distance
+		if (tamp_x != les_x_joueur2[0] || tamp_y != les_y_joueur2[0])
+		{
+			precalcul_pomme_joueur2(les_pommes_x, les_pommes_y, pomme_actuel, les_x_joueur2[0], les_y_joueur2[0], &x_avant_pomme_joueur2, &y_avant_pomme_joueur2);
+		}
+
+		/*Collision et gestion du jeu avec la pomme*/
+		pomme_ramasser = collision_avec_pomme(les_x_joueur2[0], les_y_joueur2[0], les_pommes_x[pomme_actuel], les_pommes_y[pomme_actuel]);
+
+		if (pomme_ramasser == true)
+		{
+			pomme_actuel++;
+			pomme_joueur2++;
+
+			if (pomme_actuel == NB_POMMES)
 			{
-				// Lire les entrer au clavier
-				nb_mouvement_joueur2 ++;
-				lettre = lire_entrer();
-				/*
-					Cette condition est ici pour éviter d'effacer le bout du serpent
-					alors qu'il n'y a eu aucun déplacement à la fin du jeu.
-				*/
-				progresser2(les_x_joueur2, les_y_joueur2, les_x_joueur1, les_y_joueur1, &collision_joueur2, &x_avant_pomme_joueur2, &y_avant_pomme_joueur2, pos_des_paves_x, pos_des_paves_y);
-
-				tamp_x = les_x_joueur2[0];
-				tamp_y = les_y_joueur2[0];
-
-				teleportation(&les_x_joueur2[0], &les_y_joueur2[0]);
-
-				// Si le joueur est téléporter, alors on recalcule la distance
-				if (tamp_x != les_x_joueur2[0] || tamp_y != les_y_joueur2[0])
-				{
-					precalcul_pomme_joueur2(les_pommes_x, les_pommes_y, pomme_actuel, les_x_joueur2[0], les_y_joueur2[0], &x_avant_pomme_joueur2, &y_avant_pomme_joueur2);
-				}
-
-				/*Collision et gestion du jeu avec la pomme*/
-				pomme_ramasser = collision_avec_pomme(les_x_joueur2[0], les_y_joueur2[0], les_pommes_x[pomme_actuel], les_pommes_y[pomme_actuel]);
-
-				if (pomme_ramasser == true)
-				{
-					pomme_actuel++;
-					pomme_joueur2++;
-
-					if (pomme_actuel == NB_POMMES)
-					{
-						collision_joueur2 = true;
-					}
-					else
-					{
-						precalcul_pomme_joueur1(les_pommes_x, les_pommes_y, pomme_actuel, les_x_joueur1[0], les_y_joueur1[0], &x_avant_pomme_joueur1, &y_avant_pomme_joueur1);
-						precalcul_pomme_joueur2(les_pommes_x, les_pommes_y, pomme_actuel, les_x_joueur2[0], les_y_joueur2[0], &x_avant_pomme_joueur2, &y_avant_pomme_joueur2);
-						afficher(les_pommes_x[pomme_actuel], les_pommes_y[pomme_actuel], POMME);
-					}
-				}
-
+				collision_joueur2 = true;
+			}
+			else
+			{
+				precalcul_pomme_joueur1(les_pommes_x, les_pommes_y, pomme_actuel, les_x_joueur1[0], les_y_joueur1[0], &x_avant_pomme_joueur1, &y_avant_pomme_joueur1);
+				precalcul_pomme_joueur2(les_pommes_x, les_pommes_y, pomme_actuel, les_x_joueur2[0], les_y_joueur2[0], &x_avant_pomme_joueur2, &y_avant_pomme_joueur2);
+				afficher(les_pommes_x[pomme_actuel], les_pommes_y[pomme_actuel], POMME);
 			}
 		}
+
+
+		
 		// Si le joueur obtien la dernière pomme, on veux qu'ils l'efface
 		// Alors malgré le fait qu'il aie fini, on actualise ça position pour
 		// Montrer la pomme manger
